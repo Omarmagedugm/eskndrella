@@ -1,0 +1,7 @@
+{
+  "name": "إسكندريلا | إسكندرية بكل تفاصيلها",
+  "description": "إسكندريلا — دليل إسكندرية للأماكن والأخبار والفعاليات والخدمات والمواصلات",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
