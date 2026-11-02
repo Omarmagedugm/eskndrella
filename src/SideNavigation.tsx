@@ -1,11 +1,12 @@
 import {useEffect,useRef} from 'react';
-import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Compass, Home, Map, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
+import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Home, Map, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
+import BeachUmbrella from './BeachUmbrellaIcon';
 import './sideNavigation.css';
 
 const groups = [
   {title:'اكتشف إسكندرية',links:[
     {id:'city',label:'الرئيسية',icon:Home},
-    {id:'city-outings',label:'خروجات',icon:Compass},
+    {id:'city-outings',label:'خروجات',icon:BeachUmbrella},
     {id:'city-sports',label:'رياضة سكندرية',icon:Trophy},
     {id:'city-places',label:'الأماكن والمعالم',icon:MapPin},
     {id:'city-news',label:'المجلة والأخبار',icon:Newspaper},

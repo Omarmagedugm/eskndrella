@@ -31,8 +31,9 @@ function mergeRemote<T extends {id:string}>(defaults:T[], remote:any[]):T[] {
 }
 
 export default function SportsHub({navigate,save,saved}:Props) {
-  const [view,setView]=useState<'matches'|'activities'|'clubs'>('matches');
+  const [view,setView]=useState<'matches'|'activities'|'clubs'>('clubs');
   const [club,setClub]=useState('all');
+  const [expandedClubId,setExpandedClubId]=useState<string|null>('ittihad');
   const [period,setPeriod]=useState<MatchPeriod>('upcoming');
   const [query,setQuery]=useState('');
   const [sport,setSport]=useState('all');
@@ -67,6 +68,7 @@ export default function SportsHub({navigate,save,saved}:Props) {
   const clubs=allClubs.filter(item=>(club==='all'||item.id===club)&&normalize([item.name,item.summary].join(' ')).includes(normalize(query)));
   const next=filterFixtures(allFixtures,{club,period:'upcoming',query:'',followedClubIds:view==='matches'&&onlyFollowed?followed.map(item=>item.id):undefined},now).find(item=>item.date&&item.scheduleStatus==='listed');
   const selectedClub=allClubs.find(item=>item.id===club);
+  const activeClubDetail=clubs.find(item=>item.id===expandedClubId)||clubs[0]||null;
 
   function changeView(nextView:typeof view){setView(nextView);setQuery('')}
 
@@ -76,7 +78,7 @@ export default function SportsHub({navigate,save,saved}:Props) {
       <aside className="sports-next card" aria-label="أقرب موعد مدرج"><span className="eyebrow"><CalendarDays size={15}/> أقرب موعد مدرج {selectedClub?`لـ${selectedClub.shortName}`:''}</span>{next?<><h2>{next.home}<span>×</span>{next.away}</h2><p>{next.competition}</p><b>{formatSportsDay(next.date!)}</b><span className="sports-next-time"><Clock3 size={16}/>{formatKickoff(next.startsAt)}</span><small>المواعيد قابلة للتعديل · راجع المصدر</small></>:<><h2>نستنى موعد موثوق</h2><p>مفيش موعد قادم محسوم في البيانات المحفوظة لهذا الاختيار.</p></>}</aside>
     </div>
     <div className="sports-snapshot"><ShieldCheck size={18}/><p>مراجعة المصادر: <b>{formatCityDate(sportsContent.reviewedAt)}</b> · المواعيد الواضحة بتوقيت إسكندرية.<br/><span>{sportsSnapshotStale(now)?'النسخة المحفوظة تحتاج مراجعة أحدث. افتح المصدر لتأكيد أي موعد.':'دي نسخة مجمّعة من المصادر، مش متابعة مباشرة. الوقت أو الملعب غير الموضح يفضل بانتظار التأكيد.'}</span></p></div>
-    <div className="sports-tabs" aria-label="أقسام رياضة سكندرية">{[{id:'matches',label:'المباريات',icon:CalendarDays},{id:'activities',label:'الأنشطة',icon:Dumbbell},{id:'clubs',label:'الأندية',icon:UsersRound}].map(item=><button key={item.id} className={view===item.id?'active':''} aria-pressed={view===item.id} onClick={()=>changeView(item.id as typeof view)}><item.icon size={18}/>{item.label}</button>)}</div>
+    <div className="sports-tabs" aria-label="أقسام رياضة سكندرية">{[{id:'clubs',label:'أندية إسكندرية',icon:UsersRound},{id:'matches',label:'المباريات',icon:CalendarDays},{id:'activities',label:'الأنشطة',icon:Dumbbell}].map(item=><button key={item.id} className={view===item.id?'active':''} aria-pressed={view===item.id} onClick={()=>changeView(item.id as typeof view)}><item.icon size={18}/>{item.label}</button>)}</div>
     <div className="sports-filters card">
       <label className="catalog-search"><Search size={18}/><input aria-label="ابحث في رياضة سكندرية" placeholder={view==='matches'?'نادي، منافس، أو بطولة…':view==='activities'?'نشاط أو لعبة…':'اسم النادي…'} value={query} onChange={event=>setQuery(event.target.value)}/></label>
       <div className="sports-filter-fields">
@@ -111,11 +113,105 @@ export default function SportsHub({navigate,save,saved}:Props) {
       })}</div>{!activities.length&&<div className="card city-empty"><Dumbbell size={38}/><h2>مفيش نشاط مطابق في الدليل الحالي</h2><p>جرّب لعبة أو نادي تاني. تفاصيل الاشتراك والمواعيد من إدارة كل نشاط.</p><button className="secondary" onClick={()=>{setClub('all');setSport('all');setQuery('')}}>كل الأنشطة</button></div>}
     </>}
     {view==='clubs'&&<>
-      <div className="section-heading sports-results-heading"><div><span className="eyebrow">فريقك، ولعبتك، وناسك</span><h2>أندية إسكندرية</h2></div><span role="status">{clubs.length.toLocaleString('ar-EG')} أندية</span></div>
-      <div className="sports-clubs-grid">{clubs.map((item:any)=>{
-        const isFollowed=saved.includes(clubSavedKey(item));
-        return <article className="card sports-club-card" key={item.id}><div className="sports-club-heading"><ClubMark club={item}/><div><h3>{item.name}</h3><small>{item.region}</small></div></div><p>{item.summary}</p><div className="sports-club-games">{(item.sports||[]).map((id:string)=><span key={id}>{sportNames[id as keyof typeof sportNames]||id}</span>)}</div><SourceLinks ids={[item.sourceId,...(item.fixturesSourceId&&item.fixturesSourceId!==item.sourceId?[item.fixturesSourceId]:[])]}/><a className="sports-google-club" href={clubGoogleSearchUrl(item)} target="_blank" rel="noreferrer">مواعيده في جوجل <ExternalLink size={13}/></a><div className="sports-club-actions"><button className="secondary" aria-pressed={isFollowed} onClick={()=>save(clubSavedKey(item))}>{isFollowed?<Check size={16}/>:<Heart size={16}/>} {isFollowed?'النادي محفوظ':'حفظ النادي'}</button><button className="text-button" onClick={()=>{setClub(item.id);setPeriod('upcoming');setQuery('');setOnlyFollowed(false);setView('matches')}}>مواعيده <ArrowLeft size={15}/></button></div></article>;
-      })}</div>{!clubs.length&&<div className="card city-empty"><UsersRound size={38}/><h2>جرّب اسم نادي تاني</h2><button className="secondary" onClick={()=>{setClub('all');setQuery('')}}>كل الأندية</button></div>}
+      <div className="section-heading sports-results-heading"><div><span className="eyebrow">فريقك، ولعبتك، وناسك · اضغط على مربع النادي للتفاصيل</span><h2>أندية إسكندرية</h2></div><span role="status">{clubs.length.toLocaleString('ar-EG')} أندية</span></div>
+      <div className="sports-clubs-widget-grid" role="list">
+        {clubs.map((item:any)=>{
+          const isFollowed=saved.includes(clubSavedKey(item));
+          const isSelected=activeClubDetail?.id===item.id;
+          const clubSports=(item.sports||[]).map((id:string)=>sportNames[id as keyof typeof sportNames]||id);
+          return (
+            <div
+              key={item.id}
+              role="listitem"
+              className={`sports-club-tile ${isSelected?'selected':''}`}
+              style={{'--club-accent':item.color||'#155570'} as any}
+              onClick={()=>setExpandedClubId(item.id)}
+            >
+              <div className="sports-club-tile-top">
+                <ClubMark club={item}/>
+                <button
+                  type="button"
+                  className={`sports-tile-fav ${isFollowed?'active':''}`}
+                  aria-label={isFollowed?`إلغاء حفظ ${item.name}`:`حفظ ${item.name}`}
+                  aria-pressed={isFollowed}
+                  onClick={e=>{e.stopPropagation();save(clubSavedKey(item));}}
+                >
+                  {isFollowed?<Check size={15}/>:<Heart size={15}/>}
+                </button>
+              </div>
+              <div className="sports-club-tile-body">
+                <strong>{item.name}</strong>
+                <small><MapPin size={12}/> {item.region}</small>
+              </div>
+              <div className="sports-club-tile-tags">
+                {clubSports.slice(0,2).map((label:string)=><span key={label}>{label}</span>)}
+                {clubSports.length>2&&<span>+{clubSports.length-2}</span>}
+              </div>
+              <div className="sports-club-tile-foot">
+                <button
+                  type="button"
+                  className="sports-tile-action"
+                  onClick={e=>{
+                    e.stopPropagation();
+                    setClub(item.id);
+                    setPeriod('upcoming');
+                    setQuery('');
+                    setOnlyFollowed(false);
+                    setView('matches');
+                  }}
+                >
+                  مواعيده <ArrowLeft size={13}/>
+                </button>
+                <span className="sports-tile-more">{isSelected?'معروض بالأسفل ↓':'التفاصيل'}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {activeClubDetail&&(
+        <article className="card sports-club-detail-card" aria-live="polite">
+          <div className="sports-club-heading">
+            <ClubMark club={activeClubDetail}/>
+            <div>
+              <h3>{activeClubDetail.name}</h3>
+              <small>{activeClubDetail.region}</small>
+            </div>
+          </div>
+          <p>{activeClubDetail.summary}</p>
+          <div className="sports-club-games">
+            {(activeClubDetail.sports||[]).map((id:string)=><span key={id}>{sportNames[id as keyof typeof sportNames]||id}</span>)}
+          </div>
+          <SourceLinks ids={[activeClubDetail.sourceId,...(activeClubDetail.fixturesSourceId&&activeClubDetail.fixturesSourceId!==activeClubDetail.sourceId?[activeClubDetail.fixturesSourceId]:[])]}/>
+          <div className="sports-club-actions">
+            <button
+              className="primary"
+              onClick={()=>{
+                setClub(activeClubDetail.id);
+                setPeriod('upcoming');
+                setQuery('');
+                setOnlyFollowed(false);
+                setView('matches');
+              }}
+            >
+              جدول مواعيد {activeClubDetail.shortName||activeClubDetail.name} <ArrowLeft size={15}/>
+            </button>
+            <button
+              className="secondary"
+              aria-pressed={saved.includes(clubSavedKey(activeClubDetail))}
+              onClick={()=>save(clubSavedKey(activeClubDetail))}
+            >
+              {saved.includes(clubSavedKey(activeClubDetail))?<Check size={16}/>:<Heart size={16}/>}
+              {saved.includes(clubSavedKey(activeClubDetail))?'النادي محفوظ':'حفظ النادي'}
+            </button>
+            <a className="secondary sports-google-club" href={clubGoogleSearchUrl(activeClubDetail)} target="_blank" rel="noreferrer">
+              مواعيده في جوجل <ExternalLink size={14}/>
+            </a>
+          </div>
+        </article>
+      )}
+
+      {!clubs.length&&<div className="card city-empty"><UsersRound size={38}/><h2>جرّب اسم نادي تاني</h2><button className="secondary" onClick={()=>{setClub('all');setQuery('')}}>كل الأندية</button></div>}
     </>}
     <div className="sports-footer-link"><span>قبل وبعد الماتش، إسكندريلا معاك.</span><button className="text-button" onClick={()=>navigate('home')}>خطط مواصلاتك <ArrowLeft size={16}/></button><button className="text-button" onClick={()=>navigate('city-outings')}>كمّلها بخروجة <ArrowLeft size={16}/></button></div>
   </section>;

@@ -74,6 +74,7 @@ input, select, textarea {
   gap: 0;
   max-width: 720px;
   width: 100%;
+  min-width: 0;
   margin: 0 auto 32px;
 }
 
@@ -91,8 +92,10 @@ input, select, textarea {
   background: #FAF6EE;
   box-shadow: 0 16px 40px rgba(16, 42, 67, 0.11);
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0 auto;
 }
 
@@ -100,12 +103,16 @@ input, select, textarea {
   order: 1;
   background: #102A43;
   color: #FAF6EE;
-  padding: 28px 26px 24px;
+  padding: 28px 24px 24px;
   border-radius: 26px 26px 0 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
   z-index: 10;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .esk-map-canvas {
@@ -115,6 +122,9 @@ input, select, textarea {
   border-radius: 0 0 26px 26px;
   overflow: hidden;
   background: #d9edf2;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .esk-map-status-bar {
@@ -151,6 +161,8 @@ input, select, textarea {
   align-items: center;
   text-align: center;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .esk-kicker {
@@ -179,6 +191,9 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .esk-search-field {
@@ -192,6 +207,14 @@ input, select, textarea {
   align-items: center;
   gap: 10px;
   min-height: 64px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.esk-fields-stack > .esk-search-field:last-of-type {
+  padding-left: 56px;
 }
 
 .esk-search-field.focused {
@@ -219,6 +242,7 @@ input, select, textarea {
 .esk-field-body {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .esk-field-body label {
@@ -231,25 +255,29 @@ input, select, textarea {
 
 .esk-field-body input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 0;
   outline: 0 !important;
   background: transparent;
   color: #102A43;
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 800;
   padding: 0;
+  text-overflow: ellipsis;
 }
 
 .esk-field-body input::placeholder {
   color: #829ab1;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .esk-clear-btn {
   width: 30px;
   height: 30px;
   color: #627d98;
+  flex-shrink: 0;
 }
 
 .esk-locate-pill {
@@ -257,13 +285,14 @@ input, select, textarea {
   color: #F0C64A;
   font-size: 11px;
   font-weight: 800;
-  padding: 7px 11px;
+  padding: 7px 10px;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
   min-height: 36px;
+  flex-shrink: 0;
 }
 
 .esk-swap-btn {
@@ -341,6 +370,7 @@ input, select, textarea {
 
 .esk-yellow-cta {
   width: 100%;
+  max-width: 100%;
   min-height: 52px;
   background: #F0C64A;
   color: #102A43;
@@ -353,6 +383,7 @@ input, select, textarea {
   gap: 10px;
   box-shadow: 0 6px 18px rgba(240, 198, 74, 0.28);
   transition: transform 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
 }
 
 .esk-yellow-cta:hover {
@@ -365,6 +396,8 @@ input, select, textarea {
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .esk-shortcuts-label {
@@ -381,6 +414,8 @@ input, select, textarea {
   gap: 6px;
   flex-wrap: wrap;
   justify-content: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .esk-shortcut-chip {
@@ -392,6 +427,9 @@ input, select, textarea {
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .esk-shortcut-chip:hover {
@@ -402,16 +440,20 @@ input, select, textarea {
 
 .esk-mode-switch-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   background: rgba(250, 246, 238, 0.08);
   padding: 5px;
   border-radius: 13px;
   margin-top: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .esk-mode-switch-tabs button {
-  padding: 9px 6px;
+  padding: 8px 6px;
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
@@ -420,8 +462,10 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  white-space: nowrap;
   min-height: 40px;
+  min-width: 0;
+  text-align: center;
+  line-height: 1.25;
 }
 
 .esk-mode-switch-tabs button.active {
@@ -435,6 +479,8 @@ input, select, textarea {
   position: relative;
   margin: -18px auto 0;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   z-index: 12;
   background: #FAF6EE;
   color: #102A43;
@@ -442,6 +488,7 @@ input, select, textarea {
   border-radius: 26px;
   padding: 10px 24px 26px;
   box-shadow: 0 -10px 30px rgba(16, 42, 67, 0.1);
+  box-sizing: border-box;
 }
 
 .esk-sheet-handle {
@@ -686,7 +733,7 @@ input, select, textarea {
 
 .esk-alternatives-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: 12px;
 }
 
@@ -967,7 +1014,8 @@ input, select, textarea {
 
 .esk-nearby-filter input {
   flex: 1;
-  min-width: 220px;
+  min-width: 0;
+  width: 100%;
   padding: 10px 14px;
   border-radius: 12px;
   border: 1.5px solid #cbd5e1;
@@ -977,7 +1025,7 @@ input, select, textarea {
 .esk-nearby-grid,
 .esk-lines-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 16px;
 }
 
@@ -1413,13 +1461,13 @@ input, select, textarea {
 
 @media (max-width: 960px) {
   .esk-map-stage {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: auto;
   }
   .esk-floating-search-card {
     order: 1;
     border-radius: 24px 24px 0 0;
-    padding: 20px 16px;
+    padding: 20px 14px;
   }
   .esk-map-canvas {
     order: 2;
@@ -1429,9 +1477,60 @@ input, select, textarea {
   .esk-initial-prompt,
   .esk-transfer-split,
   .esk-line-endpoints-box {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .esk-bottom-sheet {
-    padding: 10px 16px 22px;
+    padding: 10px 14px 22px;
+  }
+}
+
+@media (max-width: 520px) {
+  .content {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .esk-search-header h1 {
+    font-size: 28px;
+  }
+  .esk-corridor-hint {
+    font-size: 11px;
+  }
+  .esk-search-field {
+    padding: 9px 11px;
+    gap: 8px;
+    min-height: 58px;
+  }
+  .esk-fields-stack > .esk-search-field:last-of-type {
+    padding-left: 50px;
+  }
+  .esk-swap-btn {
+    left: 10px;
+    width: 34px;
+    height: 34px;
+  }
+  .esk-locate-pill {
+    padding: 6px 9px;
+    font-size: 10.5px;
+    min-height: 32px;
+  }
+  .esk-mode-switch-tabs {
+    gap: 4px;
+    padding: 4px;
+  }
+  .esk-mode-switch-tabs button {
+    font-size: 10.5px;
+    padding: 7px 4px;
+    gap: 4px;
+  }
+  .esk-mode-switch-tabs button svg {
+    width: 14px;
+    height: 14px;
+  }
+  .esk-primary-route-card {
+    padding: 16px;
+  }
+  .esk-selected-line-banner {
+    padding: 16px;
+    flex-wrap: wrap;
   }
 }

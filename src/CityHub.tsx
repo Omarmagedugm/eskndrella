@@ -1,5 +1,6 @@
 import SportsHub from './SportsHub';
 import Outings from './Outings';
+import BeachUmbrella from './BeachUmbrellaIcon';
 import {directoryEntries} from './cityDirectory';
 import {safeCover} from './coverImage';
 import HomeWidgets from './HomeWidgets';
@@ -11,14 +12,14 @@ import {normalize} from './data';
 
 export const cityTabs=[
   {id:'city',label:'الرئيسية',icon:Compass},
-  {id:'city-outings',label:'خروجات',icon:Compass},
+  {id:'city-outings',label:'خروجات',icon:BeachUmbrella},
   {id:'city-news',label:'المجلة',icon:Newspaper},
   {id:'city-services',label:'الدليل',icon:Store},
   {id:'profile',label:'حسابي',icon:Heart}
 ];
 
 const groups=[
-  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'فسحة على قد جيبك، ومع اللي تحبهم',icon:Compass,color:'#247887'},
+  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'فسحة على قد جيبك، ومع اللي تحبهم',icon:BeachUmbrella,color:'#247887'},
   {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك، وأنشطة تلعبها',icon:Trophy,color:'#438d77'},
   {id:'city-news',title:'الأخبار والفعاليات',subtitle:'حكايات إسكندرية، واللي بيحصل فيها',icon:Newspaper,color:'#bc8523'},
   {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للي تحتاجه حواليك',icon:Store,color:'#79835a'},

@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
-import {ArrowLeft, BookOpen, CalendarDays, Coffee, Compass, ExternalLink, Heart, Landmark, MapPin, Search, UsersRound, Wallet} from 'lucide-react';
+import {ArrowLeft, BookOpen, CalendarDays, Coffee, ExternalLink, Heart, Landmark, MapPin, Search, UsersRound, Wallet} from 'lucide-react';
+import BeachUmbrella from './BeachUmbrellaIcon';
 import {formatCityDate} from './cityContent';
 import {safeCover} from './coverImage';
 import {subscribePublic, firebaseReady} from './firebase';
@@ -42,7 +43,7 @@ export default function Outings({navigate,save}:{navigate:(id:string)=>void;save
       <div><span className="city-kicker">غيّر جو، واكتشف حتة جديدة</span><h1 id="outings-title">يلا نخرج<span>؟</span></h1>
         <p>خروجة على قد جيبك، يوم مع العيلة، أو قعدة على مزاجك.<br/>اختار اللي يناسبك وسيب الباقي للدليل.</p>
         <button className="text-button" onClick={()=>navigate('city-places')}>كل الأماكن والمعالم <ArrowLeft size={16}/></button>
-      </div><div className="outings-hero-mark" aria-hidden="true"><Compass size={84}/><span>إسكندرية تستاهل لفة</span><b>〰〰</b></div>
+      </div><div className="outings-hero-mark" aria-hidden="true"><BeachUmbrella size={84}/><span>إسكندرية تستاهل لفة</span><b>〰〰</b></div>
     </div>
     <div className="outing-themes" aria-label="نوع الخروجة">
       {themes.map(theme=><button key={theme.id} aria-pressed={category===theme.id} className={'outing-theme '+(category===theme.id?'selected':'')} onClick={()=>chooseCategory(theme.id)}>
@@ -91,6 +92,6 @@ export default function Outings({navigate,save}:{navigate:(id:string)=>void;save
         </article>;
       })}
     </div>
-    {!filtered.length&&<div className="card city-empty"><Compass size={38}/><h2>نوسّع الاختيارات شوية؟</h2><p>مفيش خروجة بالمواصفات دي في الدليل الحالي. جرّب منطقة تانية أو اعرض كل الأسعار.</p><button className="secondary" onClick={()=>{chooseCategory('all');setRegion('all');setQuery('')}}>اعرض كل الخروجات</button></div>}
+    {!filtered.length&&<div className="card city-empty"><BeachUmbrella size={38}/><h2>نوسّع الاختيارات شوية؟</h2><p>مفيش خروجة بالمواصفات دي في الدليل الحالي. جرّب منطقة تانية أو اعرض كل الأسعار.</p><button className="secondary" onClick={()=>{chooseCategory('all');setRegion('all');setQuery('')}}>اعرض كل الخروجات</button></div>}
   </section>;
 }
