@@ -1,10 +1,11 @@
+import researched from './researchedContent.json';
 // Editorial snapshot researched from the linked primary sources on 2026-10-30.
 // Not a live feed. No record below creates a verified transportation edge.
 export type CityEntry={id:string;name:string;summary:string;region:string;category?:string;sourceUrl:string;sourceName:string;reviewedAt:string;[key:string]:any};
 const entry=(id:string,name:string,summary:string,region:string,sourceUrl:string,sourceName:string,extra:Record<string,any>={}):CityEntry=>({id,name,summary,region,sourceUrl,sourceName,reviewedAt:'2026-10-30',...extra});
 const monuments='وزارة السياحة والآثار',ba='مكتبة الإسكندرية';
 const events='https://onlineticketing.bibalex.org/AllEvents';
-export const cityContent:Record<string,CityEntry[]>={
+const originalCityContent:Record<string,CityEntry[]>={
 city_places:[
 entry('qaitbay','قلعة قايتباي','حصن على البحر اتبنى مكان فنار الإسكندرية القديم بين ١٤٧٧ و١٤٧٩. زيارة تجمع تاريخ المدينة وإطلالة ساحلية.','الأنفوشي','https://egymonuments.gov.eg/monuments/qaitbay-fort/',monuments,{category:'landmark',address:'الأنفوشي، الجمرك',openingHours:'المصادر الرسمية بتختلف في موعد الإغلاق؛ اتأكد من الجهة قبل الزيارة.',priceNote:'صفحة اكتشف الآثار تعرض للمصريين ٦٠ جنيه للكبار و٣٠ للطلبة؛ راجع السعر قبل الزيارة.'}),
 entry('jewelry','متحف المجوهرات الملكية','مقتنيات الأسرة العلوية داخل قصر فاطمة الزهراء، وسط أسقف مزخرفة ولوحات وفسيفساء.','زيزينيا','https://egymonuments.gov.eg/ar/museums/royal-jewelry-museum/',monuments,{category:'museum',address:'شارع أحمد يحيى باشا، زيزينيا',openingHours:'٩ صباحًا إلى ٥ مساءً؛ شباك التذاكر يقفل ٤ مساءً. رمضان له مواعيد مختلفة.',priceNote:'المصري: ٣٠ جنيه للكبار و١٠ للطلبة حسب صفحة المتحف؛ قابل للتغيير.'}),
@@ -35,5 +36,10 @@ entry('trianon','تريانون — سان ستيفانو','فرع تريانو�
 entry('byblos','مطعم Byblos','مطبخ لبناني وإطلالة على البحر داخل فورسيزونز الإسكندرية.','سان ستيفانو','https://www.fourseasons.com/alexandria/dining/','فورسيزونز الإسكندرية',{category:'مطعم',website:'https://www.fourseasons.com/alexandria/dining/'}),
 entry('sanview','Sanview','كافيه ومطعم في مول سان ستيفانو، الدور الأول ناحية البحر حسب موقعه الرسمي.','سان ستيفانو','https://sanvieweg.com/','Sanview',{category:'كافيه ومطعم',address:'مول سان ستيفانو — الدور الأول ناحية البحر',website:'https://sanvieweg.com/'})]
 };
+export const cityContent:Record<string,CityEntry[]> = {...originalCityContent};
+for (const [collection, records] of Object.entries(researched.collections)) {
+ const additions:CityEntry[] = records.map(record => ({...record, reviewedAt:researched.reviewedAt, contentOrigin:'editorial'}));
+ cityContent[collection] = [...additions, ...(originalCityContent[collection] || [])];
+}
 export function eventStatus(item:{startsAt?:string;endsAt?:string},now=Date.now()){if(!item.startsAt)return '';const start=Date.parse(item.startsAt),end=Date.parse(item.endsAt||item.startsAt);return now>end?'انتهت':now>=start?'جارية':'جاية';}
 export function formatCityDate(value:string){return new Intl.DateTimeFormat('ar-EG',{timeZone:'Africa/Cairo',dateStyle:'medium',...(value.includes('T')?{timeStyle:'short' as const}:{})}).format(new Date(value));}

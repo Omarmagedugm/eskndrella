@@ -1,0 +1,12 @@
+.internet-transport{margin:32px 0}
+.internet-transport-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.internet-transport-card{padding:20px;min-width:0}
+.internet-line-heading{display:flex;align-items:center;gap:12px}
+.internet-line-number{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:8px;background:var(--soft);border-radius:12px;color:var(--blue);font-weight:900;direction:ltr}
+.internet-line-heading h3{font-size:16px;line-height:1.8;margin:0}
+.internet-line-via{font-size:13px;line-height:2;color:var(--text)}
+.internet-transport-card details{border-top:1px solid var(--border);padding-top:12px;font-size:12px;line-height:1.9;color:var(--muted)}
+.internet-transport-card summary{cursor:pointer;color:var(--blue);font-weight:700}
+.internet-transport-card summary:focus-visible{outline:3px solid #f5b700;outline-offset:4px}
+.internet-transport-card details a{display:inline-flex;align-items:center;gap:6px;line-height:1.8;overflow-wrap:anywhere}
+@media(max-width:650px){.internet-transport-grid{grid-template-columns:1fr}.internet-transport-card{padding:16px}.internet-line-heading h3{font-size:15px}}
