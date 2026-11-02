@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string", "maxLength": 80 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "updatedAt"]
+    },
+    "TransportLine": {
+      "title": "TransportLine",
+      "description": "Published transport line",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "mode": { "type": "string", "maxLength": 50 },
+        "origin": { "type": "string", "maxLength": 100 },
+        "destination": { "type": "string", "maxLength": 100 },
+        "published": { "type": "boolean" },
+        "verification": { "type": "string", "enum": ["verified", "unverified"] }
+      },
+      "required": ["name", "mode", "origin", "destination", "published", "verification"]
+    },
+    "RouteEdge": {
+      "title": "RouteEdge",
+      "description": "Routing graph edge",
+      "type": "object",
+      "properties": {
+        "from": { "type": "string", "maxLength": 100 },
+        "to": { "type": "string", "maxLength": 100 },
+        "line": { "type": "string", "maxLength": 100 },
+        "walking": { "type": "boolean" },
+        "published": { "type": "boolean" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["from", "to", "line", "published", "verified"]
+    },
+    "PublicContent": {
+      "title": "PublicContent",
+      "description": "Public verified transit content item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 200 },
+        "published": { "type": "boolean" },
+        "verification": { "type": "string", "enum": ["verified", "unverified"] }
+      },
+      "required": ["published", "verification"]
+    },
+    "UserSubmission": {
+      "title": "UserSubmission",
+      "description": "User reports, applications, and saved items",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "details": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["uid"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "Private user profiles managed by the authenticated user"
+    },
+    "/transport_lines/{lineId}": {
+      "schema": "TransportLine",
+      "description": "Published and verified transport lines"
+    },
+    "/route_edges/{edgeId}": {
+      "schema": "RouteEdge",
+      "description": "Routing graph edges for trip calculation"
+    },
+    "/stops/{stopId}": {
+      "schema": "PublicContent",
+      "description": "Transit stops and stations"
+    },
+    "/fares/{fareId}": {
+      "schema": "PublicContent",
+      "description": "Transit fares and pricing"
+    },
+    "/alerts/{alertId}": {
+      "schema": "PublicContent",
+      "description": "Service alerts and announcements"
+    },
+    "/transport_modes/{modeId}": {
+      "schema": "PublicContent",
+      "description": "Transport mode definitions"
+    },
+    "/app_settings/{settingId}": {
+      "schema": "PublicContent",
+      "description": "General application settings"
+    },
+    "/community_reports/{reportId}": {
+      "schema": "UserSubmission",
+      "description": "Reports submitted by community users"
+    },
+    "/contributor_applications/{appId}": {
+      "schema": "UserSubmission",
+      "description": "Contributor applications"
+    },
+    "/saved_journeys/{journeyId}": {
+      "schema": "UserSubmission",
+      "description": "User saved journeys"
+    }
+  }
+}
