@@ -48,6 +48,16 @@ Full structured route/stop/fare editors, geometry drawing and ordered-stop editi
 
 No feature in this remaining list should be presented as already active.
 
+## Outings and app navigation
+
+The outings section groups the existing sourced places, restaurants and upcoming events into budget, family, student, cultural and food outings. Search, area, recorded admission-fee limits and ticket type can be combined; a group-size field estimates admission for people in the same ticket category. Unknown fees are excluded from numeric budgets and never treated as free. Estimates do not include meals, transport or other charges. The native dialog side menu provides access to every existing app section, closes with Escape or the backdrop, and contains keyboard focus while open.
+
+## Alexandria sports
+
+`city-sports` opens from the home sections or side menu. It contains matches, activities and club guides, with a local source snapshot in `src/sportsContent.json`: 7 clubs, 12 fixture records and 9 activities. Club, period, search and saved-club filters can be combined. Match dates and explicitly sourced kickoff times use `Africa/Cairo`; ambiguous times and conflicting dates stay unknown. A past kickoff never implies a live score or finished result. Dated activities expire from the upcoming directory, while club activity guides remain clearly labelled. Club, fixture and activity bookmarks use the existing local saved-items flow. Source notes and limitations are in `docs/sports-research-2026-11-02.md`; the snapshot is not a live feed. These features do not create alert subscriptions, bookings or Firestore seeds.
+
+Sports fixture cards and club guides include contextual Google Search links for manual schedule checks. A Google search also led to an original Youm7 article confirming the Smouha–Pyramids venue and the already-recorded kickoff; the article is attributed to Youm7 and its discovery method is retained in source metadata. These are review links and a researched data update, not automatic Google ingestion or a new sports API integration.
+
 ## Maps
 
 OpenFreeMap usage and attribution: https://openfreemap.org/ and https://openfreemap.org/quick_start/ . Attribution remains visible. No map tile prefetching/offline street-map caching. Set `VITE_MAP_STYLE_URL` for a separately licensed provider if needed.
