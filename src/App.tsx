@@ -3,6 +3,7 @@ import TransportHub from './TransportHub';
 import { geography } from './adminModel';
 import CityHub, { cityTabs } from './CityHub';
 import AdminDashboard from './AdminDashboard';
+import { PWAInstallBanner, PWAInstallHeaderButton } from './PWAInstallBanner';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -307,6 +308,7 @@ export default function App() {
             ))}
           </nav>
           <div className="header-actions">
+            <PWAInstallHeaderButton />
             <span className="city-label">
               <span /> {settings.cityLabel || 'إسكندرية، مصر'}
             </span>
@@ -550,6 +552,7 @@ export default function App() {
           </footer>
         </div>
       </main>
+      <PWAInstallBanner />
       <nav className="bottom-nav">
         {navigationTabs.map(t => (
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => navigate(t.id)}>
@@ -623,7 +626,11 @@ export default function App() {
                         onChange={e => setPassword(e.target.value)}
                       />
                     </label>
-                    <button className="primary full" disabled={busy}>
+                    <button
+                      type="submit"
+                      className="primary full"
+                      disabled={busy}
+                    >
                       {busy ? 'لحظة…' : register ? 'إنشاء الحساب' : 'تسجيل الدخول'}
                     </button>
                   </form>
@@ -667,7 +674,11 @@ export default function App() {
                       حابب تساهم ليه؟
                       <textarea required name="reason" maxLength={1000} />
                     </label>
-                    <button className="primary full" disabled={busy}>
+                    <button
+                      type="submit"
+                      className="primary full"
+                      disabled={busy}
+                    >
                       ابعت الطلب للمراجعة أونلاين
                     </button>
                   </form>
@@ -731,7 +742,11 @@ export default function App() {
                       قولنا التفاصيل
                       <textarea name="details" required minLength={10} maxLength={1500} />
                     </label>
-                    <button className="primary full" disabled={busy}>
+                    <button
+                      type="submit"
+                      className="primary full"
+                      disabled={busy}
+                    >
                       إرسال للمراجعة أونلاين
                     </button>
                   </form>

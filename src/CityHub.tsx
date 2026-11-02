@@ -4,6 +4,8 @@ import BeachUmbrella from './BeachUmbrellaIcon';
 import {directoryEntries} from './cityDirectory';
 import {safeCover} from './coverImage';
 import HomeWidgets from './HomeWidgets';
+import NewsSlider from './NewsSlider';
+import MatchesSlider from './MatchesSlider';
 import {eventStatus,formatCityDate} from './cityContent';
 import {useEffect,useState} from 'react';
 import {ArrowLeft,MapPin,Search,BusFront,Compass,Newspaper,Store,Heart,ExternalLink,X,Phone,ShieldCheck,Trophy} from 'lucide-react';
@@ -131,46 +133,93 @@ export default function CityHub({
         </div>
       </section>
 
-      {settings.showWidgets!==false&&<HomeWidgets/>}
+      {/* Dynamic Ordered Home Widgets */}
+      {(() => {
+        const defaultWidgetsOrder = ['widgets', 'matches', 'news', 'sections', 'features'];
+        const rawOrder = settings.homeWidgetsOrder;
+        const orderedWidgetKeys: string[] = Array.isArray(rawOrder) && rawOrder.length > 0
+          ? rawOrder
+          : typeof rawOrder === 'string' && rawOrder.trim()
+            ? rawOrder.split(/[\n,]/).map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+            : defaultWidgetsOrder;
+        const fullOrder = Array.from(new Set([...orderedWidgetKeys, ...defaultWidgetsOrder]));
 
-      <section className="city-sections">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">مدينتك على مزاجك</span>
-            <h2>هتبدأ منين النهارده؟</h2>
-          </div>
-          <span className="city-mini-wave">〰〰</span>
-        </div>
-        <div className="city-category-grid city-home-sections">
-          {visibleGroups.map(g=>(
-            <button key={g.id} className="city-category" onClick={()=>navigate(g.id)}>
-              <span className="city-category-icon" style={{color:g.color,background:g.color+'15'}}><g.icon size={27}/></span>
-              <h3>{g.title}</h3>
-              <p>{g.subtitle}</p>
-              <span className="city-category-cta">افتح القسم <ArrowLeft size={17}/></span>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="city-feature-row">
-        <button className="city-transport-feature" onClick={()=>navigate('home')}>
-          <span className="city-kicker">مشوارك يبدأ من هنا</span>
-          <h2>مواصلات إسكندرية</h2>
-          <p>الوجهات والأسعار وأوصاف الركوب والنزول،<br/>مع مصدر المعلومة وحالة مراجعتها.</p>
-          <span>وريني الطريق <ArrowLeft size={18}/></span>
-          <BusFront className="feature-bus" size={110}/>
-        </button>
-        <button className="city-magazine-feature" onClick={()=>navigate('city-news')}>
-          <img src={magazineCover} alt="Eskendrella Magazine — إسكندريلا ماجازين"/>
-          <div>
-            <span className="eyebrow">من قلب المدينة</span>
-            <h3>{settings.magazineTitle||'إسكندريلا ماجازين'}</h3>
-            <p>{settings.magazineSubtitle||'الأخبار والحكايات والفعاليات'}</p>
-            <ArrowLeft size={19}/>
-          </div>
-        </button>
-      </section>
+        return fullOrder.map(key => {
+          switch (key) {
+            case 'widgets':
+            case 'today':
+              return settings.showWidgets !== false ? <HomeWidgets key="home-widgets" /> : null;
+            case 'matches':
+            case 'sports':
+            case 'matches_slider':
+              return settings.showMatchesSlider !== false ? (
+                <MatchesSlider key="home-matches" navigate={navigate} save={save} />
+              ) : null;
+            case 'news':
+            case 'news_slider':
+            case 'magazine':
+              return settings.showNewsSlider !== false ? (
+                <NewsSlider key="home-news" navigate={navigate} save={save} />
+              ) : null;
+            case 'sections':
+            case 'categories':
+              return settings.showSections !== false ? (
+                <section className="city-sections" key="home-sections">
+                  <div className="section-heading">
+                    <div>
+                      <span className="eyebrow">مدينتك على مزاجك</span>
+                      <h2>هتبدأ منين النهارده؟</h2>
+                    </div>
+                    <span className="city-mini-wave">〰〰</span>
+                  </div>
+                  <div className="city-category-grid city-home-sections">
+                    {visibleGroups.map(g => (
+                      <button key={g.id} className="city-category" onClick={() => navigate(g.id)}>
+                        <span className="city-category-icon" style={{ color: g.color, background: g.color + '15' }}>
+                          <g.icon size={27} />
+                        </span>
+                        <h3>{g.title}</h3>
+                        <p>{g.subtitle}</p>
+                        <span className="city-category-cta">
+                          افتح القسم <ArrowLeft size={17} />
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ) : null;
+            case 'features':
+            case 'promos':
+              return settings.showFeatures !== false ? (
+                <section className="city-feature-row" key="home-features">
+                  <button className="city-transport-feature" onClick={() => navigate('home')}>
+                    <span className="city-kicker">مشوارك يبدأ من هنا</span>
+                    <h2>مواصلات إسكندرية</h2>
+                    <p>
+                      الوجهات والأسعار وأوصاف الركوب والنزول،<br />
+                      مع مصدر المعلومة وحالة مراجعتها.
+                    </p>
+                    <span>
+                      وريني الطريق <ArrowLeft size={18} />
+                    </span>
+                    <BusFront className="feature-bus" size={110} />
+                  </button>
+                  <button className="city-magazine-feature" onClick={() => navigate('city-news')}>
+                    <img src={magazineCover} alt="Eskendrella Magazine — إسكندريلا ماجازين" />
+                    <div>
+                      <span className="eyebrow">من قلب المدينة</span>
+                      <h3>{settings.magazineTitle || 'إسكندريلا ماجازين'}</h3>
+                      <p>{settings.magazineSubtitle || 'الأخبار والحكايات والفعاليات'}</p>
+                      <ArrowLeft size={19} />
+                    </div>
+                  </button>
+                </section>
+              ) : null;
+            default:
+              return null;
+          }
+        });
+      })()}
 
       <div className="city-editorial-note">
         <ShieldCheck size={22}/>

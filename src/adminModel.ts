@@ -27,7 +27,12 @@ export const sections:Section[]=[
  f('footerText','نص الفوتر السفلي'),
  f('notice','رسالة التنبيه العامة أعلى الموقع','textarea','تظهر في شريط تنبيه أعلى كل الصفحات لو مكتوبة.'),
  f('maintenance','تفعيل وضع الصيانة','checkbox'),
+ f('homeWidgetsOrder','ترتيب ودجات الصفحة الرئيسية (اكتب كل ودجت في سطر: widgets, matches, news, sections, features)','list','الودجات: widgets (إسكندرية النهارده)، matches (سلايدر المباريات)، news (سلايدر الأخبار)، sections (أقسام إسكندرية)، features (كروت الترويج).'),
  f('showWidgets','إظهار ودجات اليوم (الطقس والعملات والصلاة)','checkbox'),
+ f('showMatchesSlider','إظهار سلايدر مباريات الأندية السكندرية ونتائجها','checkbox'),
+ f('showNewsSlider','إظهار سلايدر الأخبار تحت إسكندرية النهارده','checkbox'),
+ f('showSections','إظهار أقسام إسكندرية بالرئيسية','checkbox'),
+ f('showFeatures','إظهار كروت الترويج (المواصلات والمجلة)','checkbox'),
  f('showOutings','إظهار قسم الخروجات','checkbox'),
  f('showSports','إظهار قسم الرياضة','checkbox'),
  f('showGuides','إظهار أدلة الركوب التفصيلية','checkbox'),
@@ -149,17 +154,29 @@ export const sections:Section[]=[
  f('sourceId','معرّف المصدر'),
  notes
 ]},
-{id:'sports_fixtures',label:'جدول المباريات',description:'تحكم في مواعيد المباريات والمواجهات والبطولات والملاعب.',fields:[
+{id:'sports_fixtures',label:'جدول المباريات والنتائج',description:'تحكم في مواعيد المباريات، النتائج النهائية، الأهداف، البطولات، والملاعب للأندية السكندرية.',fields:[
  f('home','الفريق الأول (صاحب الأرض)'),
  f('away','الفريق الثاني (الضيف)'),
- f('competition','البطولة'),
+ f('competition','البطولة (مثل: الدوري المصري الممتاز، كأس مصر)'),
  select('sport','اللعبة',sportOptions),
- select('scheduleStatus','حالة الموعد',[['listed','مدرج بالجدول'],['unconfirmed','الموعد غير محسوم'],['postponed','مؤجلة'],['cancelled','ملغاة']]),
+ select('scheduleStatus','حالة المباراة',[
+  ['listed','قادمة (مدرجة بالجدول)'],
+  ['finished','انتهت (تم تسجيل النتيجة)'],
+  ['live','مباشر الآن'],
+  ['unconfirmed','الموعد غير محسوم'],
+  ['postponed','مؤجلة'],
+  ['cancelled','ملغاة']
+ ]),
+ f('homeScore','أهداف صاحب الأرض (لو انتهت أو مباشر)','number'),
+ f('awayScore','أهداف الضيف (لو انتهت أو مباشر)','number'),
  f('date','تاريخ المباراة (YYYY-MM-DD)','date'),
  f('startsAt','توقيت البداية (ISO مثل 2026-11-10T17:00:00+02:00)'),
  f('venue','الملعب أو الصالة'),
- f('clubIds','معرّفات الأندية المرتبطة','list','مثال: ittihad, smouha, olympic'),
- f('note','ملاحظات المباراة','textarea'),
+ f('round','الجولة أو الدور (اختياري مثل: الجولة ١٤، دور الـ 16)'),
+ f('homeLogo','شعار صاحب الأرض (رابط صورة)','image'),
+ f('awayLogo','شعار الضيف (رابط صورة)','image'),
+ f('clubIds','معرّفات الأندية السكندرية المرتبطة','list','مثال: ittihad, smouha, olympic, haras, pharco, sporting, abuqir'),
+ f('note','ملاحظات المباراة والملخص','textarea'),
  notes
 ]},
 {id:'sports_activities',label:'الأنشطة الرياضية',description:'تحكم في الأنشطة والفعاليات الرياضية ومواعيدها وأماكنها.',fields:[
@@ -210,7 +227,7 @@ fares:catalog.records.map(r=>({id:r.id,name:r.label,lineId:'',variantId:'',type:
 transport_modes:modes.map(m=>({id:m.id,name:m.name,color:m.color,icon:m.icon,enabled:true,notes:''})),
 regions:geography,
 data_sources:catalog.sources.map(s=>({id:`source-${s.id}`,name:`صورة جدول ${s.id}`,type:'document',reference:s.image,observedAt:'2026-03',notes:'مرجع تسعيرة مؤرخ.'})),
-app_settings:[{id:'main',name:'إسكندريلا',subtitle:'ESKENDRELLA · ALEXANDRIA',cityLabel:'إسكندرية، مصر',logoUrl:'/brand/eskendrella.png',heroKicker:'أهلًا بيك في مدينتك',heroTitle:'إسكندرية، بكل تفاصيلها.',heroDescription:'مكان تخرج فيه، حكاية تعرفها، خدمة تحتاجها، وطريق يوصّلك. كل ده في إسكندريلا.',heroImageUrl:'/brand/eskendrella.png',heroCaption:'البحر، الترام، وحكاية مدينة.',slogan:'من قلب إسكندرية، لكل أهلها',magazineTitle:'إسكندريلا ماجازين',magazineSubtitle:'الأخبار والحكايات والفعاليات',magazineImageUrl:'/brand/magazine.jpeg',footerText:'معاك في كل مشوار',notice:'',maintenance:false,showWidgets:true,showOutings:true,showSports:true,showGuides:true,showFares:true,contact:'',notes:''}],
+app_settings:[{id:'main',name:'إسكندريلا',subtitle:'ESKENDRELLA · ALEXANDRIA',cityLabel:'إسكندرية، مصر',logoUrl:'/brand/eskendrella.png',heroKicker:'أهلًا بيك في مدينتك',heroTitle:'إسكندرية، بكل تفاصيلها.',heroDescription:'مكان تخرج فيه، حكاية تعرفها، خدمة تحتاجها، وطريق يوصّلك. كل ده في إسكندريلا.',heroImageUrl:'/brand/eskendrella.png',heroCaption:'البحر، الترام، وحكاية مدينة.',slogan:'من قلب إسكندرية، لكل أهلها',magazineTitle:'إسكندريلا ماجازين',magazineSubtitle:'الأخبار والحكايات والفعاليات',magazineImageUrl:'/brand/magazine.jpeg',footerText:'معاك في كل مشوار',notice:'',maintenance:false,homeWidgetsOrder:['widgets','matches','news','sections','features'],showWidgets:true,showNewsSlider:true,showMatchesSlider:true,showSections:true,showFeatures:true,showOutings:true,showSports:true,showGuides:true,showFares:true,contact:'',notes:''}],
 alerts:[],
 route_variants:[],admin_drafts:[],community_reports:[],contribution_submissions:[],contributor_applications:[],approved_contributors:[],user_roles:[],data_versions:[],audit_logs:[]}}
 export function normalizeDraft(fields:Field[],form:Record<string,any>){const output:Record<string,any>={};for(const f of fields){let value=form[f.key];if(f.type==='image'&&value&&!safeCover(value))throw Error(`اختار ${f.label} صالحة أو رابط HTTPS صحيح`);if(f.type==='list')value=Array.isArray(value)?value:String(value||'').split(/[\n،,]/).map(s=>s.trim()).filter(Boolean);if(f.type==='json'){try{value=typeof value==='string'?JSON.parse(value):value}catch{throw Error(`راجع صيغة ${f.label}`)}if(!Array.isArray(value))throw Error(`${f.label} لازم تكون قائمة`)}if(f.type==='number'){value=value===''||value==null?null:Number(value);if(value!==null&&!Number.isFinite(value))throw Error(`راجع ${f.label}`)}if(f.type==='checkbox')value=Boolean(value);output[f.key]=f.type==='number'?value:value??''}if(!output.name&&(output.title||output.home)){output.name=output.title||`${output.home} × ${output.away||''}`}return output}

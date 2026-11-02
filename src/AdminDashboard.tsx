@@ -1,5 +1,5 @@
 import CoverPicker from './CoverPicker';
-import { safeCover } from './coverImage';
+import { safeCover, prepareClubLogo } from './coverImage';
 import { useEffect, useRef, useState } from 'react';
 import {
   LayoutDashboard,
@@ -24,9 +24,12 @@ import {
   Store,
   Trophy,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import { call, syncLocalDraftsToCloud, ADMIN_EMAIL } from './firebase';
 import { sections, emptyRecord, normalizeDraft, seedWorkspace, type Section } from './adminModel';
+import { sportsContent } from './sportsModel';
+import { ClubLogo, registerCustomClubLogos } from './clubLogos';
 import { normalize } from './data';
 import type { User } from 'firebase/auth';
 
@@ -72,6 +75,355 @@ const stateLabels: Record<string, string> = {
   development: 'تحت التطوير',
   suspended: 'متوقف مؤقتًا',
 };
+
+function HomeWidgetsManager({
+  currentSettings,
+  onSave,
+  busy,
+}: {
+  currentSettings: Record<string, any>;
+  onSave: (newSettings: Record<string, any>) => Promise<void>;
+  busy: boolean;
+}) {
+  const DEFAULT_KEYS = ['widgets', 'matches', 'news', 'sections', 'features'];
+  const rawOrder = currentSettings.homeWidgetsOrder;
+  const initialOrder: string[] = Array.isArray(rawOrder) && rawOrder.length > 0
+    ? rawOrder
+    : typeof rawOrder === 'string' && rawOrder.trim()
+      ? rawOrder.split(/[\n,]/).map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+      : DEFAULT_KEYS;
+
+  const [order, setOrder] = useState<string[]>(Array.from(new Set([...initialOrder, ...DEFAULT_KEYS])));
+  const [toggles, setToggles] = useState<Record<string, boolean>>({
+    widgets: currentSettings.showWidgets !== false,
+    matches: currentSettings.showMatchesSlider !== false,
+    news: currentSettings.showNewsSlider !== false,
+    sections: currentSettings.showSections !== false,
+    features: currentSettings.showFeatures !== false,
+  });
+
+  // Keep state synced if currentSettings change
+  useEffect(() => {
+    const raw = currentSettings.homeWidgetsOrder;
+    const current: string[] = Array.isArray(raw) && raw.length > 0
+      ? raw
+      : typeof raw === 'string' && raw.trim()
+        ? raw.split(/[\n,]/).map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+        : DEFAULT_KEYS;
+    setOrder(Array.from(new Set([...current, ...DEFAULT_KEYS])));
+    setToggles({
+      widgets: currentSettings.showWidgets !== false,
+      matches: currentSettings.showMatchesSlider !== false,
+      news: currentSettings.showNewsSlider !== false,
+      sections: currentSettings.showSections !== false,
+      features: currentSettings.showFeatures !== false,
+    });
+  }, [currentSettings]);
+
+  const WIDGET_INFO: Record<string, { title: string; desc: string; icon: string }> = {
+    widgets: { title: 'إسكندرية النهارده (الطقس والصلاة والعملات)', desc: 'ودجات معلومات اليوم الأساسية أعلى الرئيسية', icon: '🌤️' },
+    matches: { title: 'مباريات ونتائج أندية إسكندرية', desc: 'سلايدر مواعيد ونتائج الأندية السكندرية مع الشعارات الرسمية', icon: '🏆' },
+    news: { title: 'سلايدر إسكندريلا ماجازين', desc: 'سلايدر الأخبار والحكايات والفعاليات المميزة', icon: '📰' },
+    sections: { title: 'أقسام إسكندرية الرئيسية', desc: 'كروت الأقسام (الخروجات، الرياضة، الخدمات، المواصلات...)', icon: '🧭' },
+    features: { title: 'كروت الترويج المميزة', desc: 'كارت مواصلات إسكندرية الكبير وكارت مجلة إسكندريلا', icon: '🚌' },
+  };
+
+  const move = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir;
+    if (target < 0 || target >= order.length) return;
+    const next = [...order];
+    const temp = next[idx];
+    next[idx] = next[target];
+    next[target] = temp;
+    setOrder(next);
+  };
+
+  const handleSave = () => {
+    const updated = {
+      ...currentSettings,
+      homeWidgetsOrder: order,
+      showWidgets: toggles.widgets,
+      showMatchesSlider: toggles.matches,
+      showNewsSlider: toggles.news,
+      showSections: toggles.sections,
+      showFeatures: toggles.features,
+    };
+    void onSave(updated);
+  };
+
+  return (
+    <div className="card admin-widgets-manager" style={{ marginTop: 14, marginBottom: 20, padding: 20, border: '2px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)' }}>
+            <span>🎛️</span> ترتيب وإدارة ودجات الصفحة الرئيسية
+          </h3>
+          <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>
+            تحكم في إظهار أو إخفاء أي ودجت، ورتب ظهورها في الصفحة الرئيسية بالأسهم (أعلى ⬆️ / أسفل ⬇️).
+          </p>
+        </div>
+        <button
+          type="button"
+          className="primary"
+          onClick={handleSave}
+          disabled={busy}
+          style={{ minHeight: 38, padding: '8px 16px', fontSize: 13 }}
+        >
+          <Check size={16} /> {busy ? 'جاري الحفظ…' : 'حفظ ترتيب الودجات ونشرها أونلاين'}
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        {order.map((key, index) => {
+          const info = WIDGET_INFO[key] || { title: key, desc: '', icon: '📌' };
+          const isEnabled = toggles[key] !== false;
+          return (
+            <div
+              key={key}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: 12,
+                background: isEnabled ? 'var(--card)' : 'var(--soft)',
+                border: isEnabled ? '1.5px solid var(--border)' : '1px dashed var(--border)',
+                opacity: isEnabled ? 1 : 0.65,
+                gap: 12,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 200 }}>
+                <span style={{ fontSize: 12, fontWeight: 900, background: '#102a43', color: '#f0c64a', width: 26, height: 26, borderRadius: 7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {index + 1}
+                </span>
+                <span style={{ fontSize: 20 }}>{info.icon}</span>
+                <div>
+                  <strong style={{ fontSize: 13.5, display: 'block', color: 'var(--text)' }}>{info.title}</strong>
+                  <small style={{ color: 'var(--muted)', fontSize: 11 }}>{info.desc}</small>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    onChange={e => setToggles({ ...toggles, [key]: e.target.checked })}
+                  />
+                  <span>{isEnabled ? 'مفعلة' : 'معطلة'}</span>
+                </label>
+
+                <div style={{ display: 'inline-flex', gap: 4 }}>
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ padding: '4px 8px', minHeight: 32, fontSize: 12 }}
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
+                    title="تحريك للأعلى"
+                  >
+                    ⬆️ أعلى
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ padding: '4px 8px', minHeight: 32, fontSize: 12 }}
+                    disabled={index === order.length - 1}
+                    onClick={() => move(index, 1)}
+                    title="تحريك للأسفل"
+                  >
+                    ⬇️ أسفل
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ClubLogosManager({
+  rows,
+  onUploadLogo,
+  onResetLogo,
+  onEditClub,
+  canEdit,
+  busy,
+}: {
+  rows: any[];
+  onUploadLogo: (club: any, file: File) => Promise<void>;
+  onResetLogo: (club: any) => Promise<void>;
+  onEditClub: (club: any) => void;
+  canEdit: boolean;
+  busy: boolean;
+}) {
+  const [uploadingClubId, setUploadingClubId] = useState<string | null>(null);
+
+  const defaultClubs = sportsContent.clubs;
+  const mergedClubs = defaultClubs.map(dc => {
+    const remote = rows.find(r => r.id === dc.id);
+    return remote ? { ...dc, ...remote } : dc;
+  });
+  const extraClubs = rows.filter(r => !defaultClubs.some(dc => dc.id === r.id));
+  const allClubs = [...mergedClubs, ...extraClubs];
+
+  return (
+    <div
+      className="card admin-club-logos-manager"
+      style={{
+        marginTop: 14,
+        marginBottom: 20,
+        padding: 20,
+        border: '2px solid var(--border)',
+        background: 'linear-gradient(180deg, var(--card) 0%, var(--soft) 100%)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)' }}>
+            <span>🛡️</span> شعارات أندية إسكندرية (رفع واختيار PNG شفاف)
+          </h3>
+          <p style={{ margin: '4px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>
+            اختر شعار PNG مفرغ لكل نادي وارفعه مباشرة من جهازك. يتم حفظ شفافية الخلفية، ويظهر الشعار فورًا بجوار اسم النادي في شريط المباريات والنتائج وقسم الرياضة.
+          </p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        {allClubs.map(club => {
+          const hasCustom = Boolean(club.imageUrl && safeCover(club.imageUrl));
+          const isCurrentUploading = uploadingClubId === club.id && busy;
+
+          return (
+            <div
+              key={club.id}
+              style={{
+                borderRadius: 14,
+                border: '1.5px solid var(--border)',
+                background: 'var(--card)',
+                padding: 14,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div>
+                  <strong style={{ fontSize: 14, display: 'block', color: 'var(--text)' }}>
+                    {club.name}
+                  </strong>
+                  <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>
+                    {club.shortName} • {club.region}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    padding: '2px 8px',
+                    borderRadius: 99,
+                    fontWeight: 700,
+                    background: hasCustom ? '#e8f5e9' : '#e3f2fd',
+                    color: hasCustom ? '#1b5e20' : '#0d47a1',
+                  }}
+                >
+                  {hasCustom ? '✓ PNG مخصص' : 'فيكتور مدمج'}
+                </span>
+              </div>
+
+              {/* Logo Preview in Checkerboard box */}
+              <div
+                style={{
+                  height: 96,
+                  borderRadius: 10,
+                  backgroundImage: 'repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%)',
+                  backgroundPosition: '50%',
+                  backgroundSize: '14px 14px',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.06)',
+                }}
+              >
+                <ClubLogo name={club.name} id={club.id} customUrl={club.imageUrl} size={58} />
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 'auto' }}>
+                <label
+                  className="primary"
+                  style={{
+                    cursor: canEdit && !busy ? 'pointer' : 'not-allowed',
+                    opacity: canEdit && !busy ? 1 : 0.65,
+                    fontSize: 12,
+                    padding: '7px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    borderRadius: 8,
+                    background: '#102a43',
+                    color: '#f0c64a',
+                    border: '1px solid #f0c64a',
+                    margin: 0,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Upload size={14} />
+                  <span>{isCurrentUploading ? 'جاري رفع الشعار…' : 'اختيار ورفع شعار PNG'}</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/webp,image/jpeg,image/svg+xml"
+                    disabled={!canEdit || busy}
+                    style={{ display: 'none' }}
+                    onChange={async e => {
+                      const file = e.target.files?.[0];
+                      e.target.value = '';
+                      if (!file) return;
+                      setUploadingClubId(club.id);
+                      try {
+                        await onUploadLogo(club, file);
+                      } finally {
+                        setUploadingClubId(null);
+                      }
+                    }}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {hasCustom && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      style={{ flex: 1, padding: '5px 8px', fontSize: 11, minHeight: 30 }}
+                      disabled={!canEdit || busy}
+                      onClick={() => onResetLogo(club)}
+                    >
+                      استعادة الافتراضي
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ flex: 1, padding: '5px 8px', fontSize: 11, minHeight: 30 }}
+                    disabled={!canEdit || busy}
+                    onClick={() => onEditClub(club)}
+                  >
+                    تعديل البيانات
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard({ user, notify }: { user: User | null; notify: (s: string) => void }) {
   const [role, setRole] = useState('super_admin');
@@ -435,6 +787,64 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
               </div>
             )}
 
+            {sectionId === 'app_settings' && (
+              <HomeWidgetsManager
+                currentSettings={rows[0] || seedWorkspace().app_settings?.[0] || {}}
+                onSave={async (newSettings) => {
+                  await action(async () => {
+                    await call('adminWrite', {
+                      collection: 'app_settings',
+                      id: 'main',
+                      record: newSettings,
+                    });
+                  }, 'تم حفظ ترتيب وإعدادات ودجات الرئيسية ونشرها أونلاين بنجاح');
+                }}
+                busy={busy}
+              />
+            )}
+
+            {sectionId === 'sports_clubs' && (
+              <ClubLogosManager
+                rows={rows}
+                canEdit={canEdit}
+                busy={busy}
+                onUploadLogo={async (club, file) => {
+                  const pngResult = await prepareClubLogo(file);
+                  await action(async () => {
+                    const record = {
+                      ...club,
+                      id: club.id,
+                      imageUrl: pngResult,
+                      published: true,
+                    };
+                    await call('adminWrite', {
+                      collection: 'sports_clubs',
+                      id: club.id,
+                      record,
+                    });
+                    registerCustomClubLogos([record]);
+                  }, `تم رفع ونشر شعار ${club.name} (PNG شفاف) أونلاين بنجاح!`);
+                }}
+                onResetLogo={async (club) => {
+                  await action(async () => {
+                    const record = {
+                      ...club,
+                      id: club.id,
+                      imageUrl: '',
+                      published: true,
+                    };
+                    await call('adminWrite', {
+                      collection: 'sports_clubs',
+                      id: club.id,
+                      record,
+                    });
+                    registerCustomClubLogos([record]);
+                  }, `تمت استعادة الشعار الفيكتور الافتراضي لـ ${club.name}`);
+                }}
+                onEditClub={(club) => edit(club)}
+              />
+            )}
+
             {sectionId === 'user_roles' && (
               <form
                 className="card admin-form"
@@ -676,6 +1086,12 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
                       key={`${editor.section.id}-${editor.id || 'new'}-${f.key}`}
                       label={f.label}
                       help={f.help}
+                      isLogo={
+                        editor.section.id === 'sports_clubs' ||
+                        f.key === 'homeLogo' ||
+                        f.key === 'awayLogo' ||
+                        f.key === 'logoUrl'
+                      }
                       value={editor.record[f.key] || ''}
                       onChange={value =>
                         setEditor(current =>

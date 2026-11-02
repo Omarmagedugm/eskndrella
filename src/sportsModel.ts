@@ -5,9 +5,28 @@ import {normalize} from './data';
 export type Sport = 'football'|'basketball'|'volleyball'|'swimming'|'racket'|'fitness'|'running'|'multi';
 export type SportsSource = {id:string;name:string;url:string;discoveredVia?:'google_search';publishedDate?:string};
 export type Club = {id:string;name:string;shortName:string;color:string;region:string;sports:Sport[];summary:string;sourceId:string;fixturesSourceId:string|null};
-export type Fixture = {id:string;clubIds:string[];home:string;away:string;sport:Sport;competition:string;date:string|null;startsAt:string|null;scheduleStatus:'listed'|'unconfirmed'|'postponed'|'cancelled';venue:string|null;sourceIds:string[];note:string};
+export type Fixture = {
+  id:string;
+  clubIds:string[];
+  home:string;
+  away:string;
+  sport:Sport;
+  competition:string;
+  date:string|null;
+  startsAt:string|null;
+  scheduleStatus:'listed'|'unconfirmed'|'postponed'|'cancelled'|'finished'|'live';
+  status?:string;
+  homeScore?:number|null;
+  awayScore?:number|null;
+  round?:string|null;
+  homeLogo?:string|null;
+  awayLogo?:string|null;
+  venue:string|null;
+  sourceIds:string[];
+  note:string;
+};
 export type Activity = {id:string;title:string;summary:string;clubId:string|null;sport:Sport;kind:'event'|'directory';date:string|null;venue:string;access:string;sourceIds:string[];actionUrl:string|null};
-export type MatchPeriod = 'upcoming'|'today'|'week'|'all';
+export type MatchPeriod = 'upcoming'|'today'|'week'|'all'|'finished';
 type SportsContent = {reviewedAt:string;timeZone:string;sources:SportsSource[];clubs:Club[];fixtures:Fixture[];activities:Activity[]};
 export const sportsContent = data as SportsContent;
 export const sportNames:Record<Sport,string> = {football:'كرة القدم',basketball:'كرة السلة',volleyball:'الكرة الطائرة',swimming:'السباحة',racket:'رياضات المضرب',fitness:'لياقة بدنية',running:'الجري',multi:'ألعاب متعددة'};
@@ -15,6 +34,8 @@ export const sportNames:Record<Sport,string> = {football:'كرة القدم',bas
 export function fixtureState(item:Fixture,now=Date.now()) {
   if(item.scheduleStatus==='cancelled')return 'cancelled';
   if(item.scheduleStatus==='postponed')return 'postponed';
+  if(item.scheduleStatus==='finished'||(typeof item.homeScore==='number'&&typeof item.awayScore==='number'))return 'finished';
+  if(item.scheduleStatus==='live')return 'live';
   if(item.scheduleStatus==='unconfirmed'||!item.date)return 'unconfirmed';
   const today=cairoDay(new Date(now));
   if(item.date<today||(item.startsAt&&Date.parse(item.startsAt)<now))return 'awaiting_update';
@@ -31,12 +52,21 @@ export function filterFixtures(items:Fixture[],options:{club:string;period:Match
     if(!normalize([item.home,item.away,item.competition].join(' ')).includes(query))return false;
     if(options.period==='all')return true;
     if(item.scheduleStatus==='cancelled')return false;
-    if(options.period==='upcoming')return fixtureState(item,now)!=='awaiting_update';
+    const state = fixtureState(item, now);
+    if(options.period==='finished')return state==='finished';
+    if(options.period==='upcoming')return state!=='awaiting_update'&&state!=='finished';
     if(!item.date||item.scheduleStatus!=='listed')return false;
     return options.period==='today'?item.date===today:item.date>=today&&item.date<=weekEnd;
-  }).sort((a,b)=>Number(a.scheduleStatus==='unconfirmed')-Number(b.scheduleStatus==='unconfirmed')||
+  }).sort((a,b)=>{
+    const stateA = fixtureState(a, now);
+    const stateB = fixtureState(b, now);
+    if (stateA === 'finished' && stateB === 'finished') {
+      return (b.date||'0').localeCompare(a.date||'0');
+    }
+    return Number(a.scheduleStatus==='unconfirmed')-Number(b.scheduleStatus==='unconfirmed')||
     (a.date||'9999').localeCompare(b.date||'9999')||
-    (a.startsAt?Date.parse(a.startsAt):Infinity)-(b.startsAt?Date.parse(b.startsAt):Infinity));
+    (a.startsAt?Date.parse(a.startsAt):Infinity)-(b.startsAt?Date.parse(b.startsAt):Infinity);
+  });
 }
 
 export function filterSportsActivities(items:Activity[],options:{club:string;sport:string;query:string},now=Date.now()):Activity[] {

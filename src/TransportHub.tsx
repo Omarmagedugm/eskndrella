@@ -567,7 +567,7 @@ export default function TransportHub({
               className={subView === 'lines' ? 'active' : ''}
               onClick={() => setSubView('lines')}
             >
-              <BusFront size={16}/> كل الخطوط والأتوبيسات
+              <BusFront size={16}/> كل الخطوط
             </button>
           </div>
         </div>

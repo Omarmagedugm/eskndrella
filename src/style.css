@@ -1533,4 +1533,27 @@ input, select, textarea {
     padding: 16px;
     flex-wrap: wrap;
   }
+  .esk-floating-search-card {
+    padding: 18px 14px 16px;
+  }
+}
+
+@keyframes pwaSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 768px) {
+  .pwa-install-banner {
+    bottom: 24px !important;
+    left: auto !important;
+    right: 24px !important;
+    width: 390px !important;
+  }
 }

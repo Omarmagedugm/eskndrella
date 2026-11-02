@@ -5,15 +5,14 @@ import {safeCover} from './coverImage';
 import {normalize} from './data';
 import {subscribePublic,firebaseReady} from './firebase';
 import {clubGoogleSearchUrl,clubSavedKey,filterFixtures,filterSportsActivities,fixtureGoogleSearchUrl,fixtureSavedKey,fixtureState,formatKickoff,formatSportsDay,sportNames,sportsContent,sportsSnapshotStale,type Club,type MatchPeriod} from './sportsModel';
+import { ClubLogo, registerCustomClubLogos } from './clubLogos';
 import './sports.css';
 
 type Props={navigate:(id:string)=>void;save:(value:string)=>void;saved:string[]};
-const stateLabels={listed:'مدرج بالجدول',today:'اليوم حسب الجدول',unconfirmed:'الموعد غير محسوم',postponed:'مؤجلة حسب المصدر',cancelled:'ملغاة حسب المصدر',awaiting_update:'الموعد المسجل مرّ · النتيجة تحتاج تحديثًا'};
+const stateLabels={listed:'مدرج بالجدول',today:'اليوم حسب الجدول',unconfirmed:'الموعد غير محسوم',postponed:'مؤجلة حسب المصدر',cancelled:'ملغاة حسب المصدر',awaiting_update:'الموعد المسجل مرّ · النتيجة تحتاج تحديثًا',finished:'انتهت (النتيجة مسجلة)',live:'مباشر الآن'};
 
 function ClubMark({club}:{club:Club & {imageUrl?:string}}) {
-  const img = safeCover(club.imageUrl);
-  if (img) return <img src={img} alt={club.name} style={{width:44,height:44,borderRadius:12,objectFit:'cover'}}/>;
-  return <span className="sports-club-mark" style={{color:club.color||'#155570',background:(club.color||'#155570')+'15'}} aria-hidden="true"><ShieldCheck size={23}/></span>;
+  return <ClubLogo name={club.name} id={club.id} customUrl={club.imageUrl} size={44} />;
 }
 function SourceLinks({ids}:{ids:string[]}) {
   return <ul className="sports-source-links">{(ids||[]).map(id=>{
@@ -48,7 +47,10 @@ export default function SportsHub({navigate,save,saved}:Props) {
     let unsubFixtures = () => {};
     let unsubActivities = () => {};
     if(firebaseReady){
-      unsubClubs = subscribePublic('sports_clubs', setRemoteClubs);
+      unsubClubs = subscribePublic('sports_clubs', (data: any[]) => {
+        setRemoteClubs(data);
+        if (Array.isArray(data)) registerCustomClubLogos(data);
+      });
       unsubFixtures = subscribePublic('sports_fixtures', setRemoteFixtures);
       unsubActivities = subscribePublic('sports_activities', setRemoteActivities);
     }
@@ -83,7 +85,7 @@ export default function SportsHub({navigate,save,saved}:Props) {
       <label className="catalog-search"><Search size={18}/><input aria-label="ابحث في رياضة سكندرية" placeholder={view==='matches'?'نادي، منافس، أو بطولة…':view==='activities'?'نشاط أو لعبة…':'اسم النادي…'} value={query} onChange={event=>setQuery(event.target.value)}/></label>
       <div className="sports-filter-fields">
         <div><label htmlFor="sports-club">النادي</label><select id="sports-club" value={club} onChange={event=>setClub(event.target.value)}><option value="all">كل الأندية</option>{allClubs.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></div>
-        {view==='matches'&&<div><label htmlFor="sports-period">المواعيد</label><select id="sports-period" value={period} onChange={event=>setPeriod(event.target.value as MatchPeriod)}><option value="upcoming">القادمة وبانتظار التأكيد</option><option value="today">اليوم</option><option value="week">السبعة أيام الجاية</option><option value="all">كل المواعيد المحفوظة</option></select></div>}
+        {view==='matches'&&<div><label htmlFor="sports-period">المواعيد</label><select id="sports-period" value={period} onChange={event=>setPeriod(event.target.value as MatchPeriod)}><option value="upcoming">القادمة وبانتظار التأكيد</option><option value="finished">النتائج السابقة</option><option value="today">اليوم</option><option value="week">السبعة أيام الجاية</option><option value="all">كل المواعيد والنتائج</option></select></div>}
         {view==='activities'&&<div><label htmlFor="sports-activity-kind">اللعبة</label><select id="sports-activity-kind" value={sport} onChange={event=>setSport(event.target.value)}><option value="all">كل الألعاب</option>{[...new Set(allActivities.map(item=>item.sport))].map(id=><option key={id} value={id}>{sportNames[id]||id}</option>)}</select></div>}
       </div>
       {view==='matches'&&<label className="sports-followed-filter"><input type="checkbox" checked={onlyFollowed} onChange={event=>setOnlyFollowed(event.target.checked)}/> أنديتي المحفوظة فقط <span>({followed.length.toLocaleString('ar-EG')})</span></label>}
@@ -94,7 +96,23 @@ export default function SportsHub({navigate,save,saved}:Props) {
         const state=fixtureState(item,now),key=fixtureSavedKey(item),isSaved=saved.includes(key);
         return <article className="card sports-match-card" key={item.id}>
           <div className="sports-match-top"><span>{item.competition}</span><span className={'sports-state '+state}>{stateLabels[state]}</span></div>
-          <div className="sports-match-teams"><strong>{item.home}</strong><span>×</span><strong>{item.away}</strong></div>
+          <div className="sports-match-teams" style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',alignItems:'center',gap:8}}>
+            <span style={{display:'inline-flex',alignItems:'center',gap:6,minWidth:0}}>
+              <ClubLogo name={item.home} customUrl={item.homeLogo} size={24}/>
+              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.home}</strong>
+            </span>
+            {typeof item.homeScore === 'number' && typeof item.awayScore === 'number' ? (
+              <span style={{fontSize:16,fontWeight:900,color:'#1b7a42',padding:'2px 8px',background:'rgba(27,122,66,0.1)',borderRadius:8,whiteSpace:'nowrap'}}>
+                {item.homeScore} - {item.awayScore}
+              </span>
+            ) : (
+              <span style={{color:'var(--muted)',fontWeight:800}}>×</span>
+            )}
+            <span style={{display:'inline-flex',alignItems:'center',justifyContent:'flex-end',gap:6,minWidth:0}}>
+              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.away}</strong>
+              <ClubLogo name={item.away} customUrl={item.awayLogo} size={24}/>
+            </span>
+          </div>
           <div className="sports-match-date"><CalendarDays size={17}/><b>{item.date?formatSportsDay(item.date):'اليوم بانتظار التأكيد'}</b></div>
           <div className="sports-match-time"><Clock3 size={16}/><span>{formatKickoff(item.startsAt)}{item.startsAt?' · إسكندرية':''}</span></div>
           <div className="sports-match-venue"><MapPin size={15}/>{item.venue||'الملعب غير محدد في السجل'}</div>
