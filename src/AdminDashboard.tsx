@@ -26,7 +26,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { call, syncLocalDraftsToCloud, ADMIN_EMAIL } from './firebase';
-import { sections, emptyRecord, normalizeDraft, type Section } from './adminModel';
+import { sections, emptyRecord, normalizeDraft, seedWorkspace, type Section } from './adminModel';
 import { normalize } from './data';
 import type { User } from 'firebase/auth';
 
@@ -204,13 +204,24 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
   }
 
   function edit(row?: any, targetSection: Section = section) {
-    const clean = row
-      ? Object.fromEntries(targetSection.fields!.map(f => [f.key, row[f.key] ?? emptyRecord(targetSection)[f.key]]))
-      : emptyRecord(targetSection);
+    const baseDefaults =
+      targetSection.id === 'app_settings'
+        ? { ...emptyRecord(targetSection), ...(seedWorkspace().app_settings?.[0] || {}) }
+        : emptyRecord(targetSection);
+    const sourceRow =
+      targetSection.id === 'app_settings' ? { ...baseDefaults, ...(row || rows[0] || {}) } : row;
+    const clean = sourceRow
+      ? Object.fromEntries(
+          targetSection.fields!.map(f => {
+            const val = sourceRow[f.key];
+            return [f.key, val !== undefined && val !== '' ? val : baseDefaults[f.key]];
+          })
+        )
+      : baseDefaults;
     setEditor({
       section: targetSection,
-      id: row?.id,
-      revision: row?.revision || 0,
+      id: targetSection.id === 'app_settings' ? 'main' : row?.id,
+      revision: sourceRow?.revision || 0,
       record: clean,
     });
     setDetail(null);
@@ -652,6 +663,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
               </div>
             )}
             <form
+              noValidate
               onSubmit={e => {
                 e.preventDefault();
                 void save();

@@ -19,6 +19,7 @@ export const sections:Section[]=[
  f('heroTitle','عنوان الواجهة الرئيسية'),
  f('heroDescription','وصف الواجهة الرئيسية','textarea'),
  f('heroImageUrl','صورة الواجهة الرئيسية (Hero)','image','الصورة الرئيسية التي تظهر في الصفحة الأولى للتطبيق.'),
+ f('heroCaption','التعليق تحت صورة الواجهة الرئيسية'),
  f('slogan','شعار التطبيق التوقيعي'),
  f('magazineTitle','عنوان كارت المجلة في الرئيسية'),
  f('magazineSubtitle','وصف كارت المجلة في الرئيسية'),
@@ -209,7 +210,7 @@ fares:catalog.records.map(r=>({id:r.id,name:r.label,lineId:'',variantId:'',type:
 transport_modes:modes.map(m=>({id:m.id,name:m.name,color:m.color,icon:m.icon,enabled:true,notes:''})),
 regions:geography,
 data_sources:catalog.sources.map(s=>({id:`source-${s.id}`,name:`صورة جدول ${s.id}`,type:'document',reference:s.image,observedAt:'2026-03',notes:'مرجع تسعيرة مؤرخ.'})),
-app_settings:[{id:'main',name:'إسكندريلا',subtitle:'ESKENDRELLA · ALEXANDRIA',cityLabel:'إسكندرية، مصر',logoUrl:'/brand/eskendrella.png',heroKicker:'أهلًا بيك في مدينتك',heroTitle:'إسكندرية، بكل تفاصيلها.',heroDescription:'مكان تخرج فيه، حكاية تعرفها، خدمة تحتاجها، وطريق يوصّلك. كل ده في إسكندريلا.',heroImageUrl:'/brand/eskendrella.png',slogan:'من قلب إسكندرية، لكل أهلها',magazineTitle:'إسكندريلا ماجازين',magazineSubtitle:'الأخبار والحكايات والفعاليات',magazineImageUrl:'/brand/magazine.jpeg',footerText:'معاك في كل مشوار',notice:'',maintenance:false,showWidgets:true,showOutings:true,showSports:true,showGuides:true,showFares:true,contact:'',notes:''}],
+app_settings:[{id:'main',name:'إسكندريلا',subtitle:'ESKENDRELLA · ALEXANDRIA',cityLabel:'إسكندرية، مصر',logoUrl:'/brand/eskendrella.png',heroKicker:'أهلًا بيك في مدينتك',heroTitle:'إسكندرية، بكل تفاصيلها.',heroDescription:'مكان تخرج فيه، حكاية تعرفها، خدمة تحتاجها، وطريق يوصّلك. كل ده في إسكندريلا.',heroImageUrl:'/brand/eskendrella.png',heroCaption:'البحر، الترام، وحكاية مدينة.',slogan:'من قلب إسكندرية، لكل أهلها',magazineTitle:'إسكندريلا ماجازين',magazineSubtitle:'الأخبار والحكايات والفعاليات',magazineImageUrl:'/brand/magazine.jpeg',footerText:'معاك في كل مشوار',notice:'',maintenance:false,showWidgets:true,showOutings:true,showSports:true,showGuides:true,showFares:true,contact:'',notes:''}],
 alerts:[],
 route_variants:[],admin_drafts:[],community_reports:[],contribution_submissions:[],contributor_applications:[],approved_contributors:[],user_roles:[],data_versions:[],audit_logs:[]}}
 export function normalizeDraft(fields:Field[],form:Record<string,any>){const output:Record<string,any>={};for(const f of fields){let value=form[f.key];if(f.type==='image'&&value&&!safeCover(value))throw Error(`اختار ${f.label} صالحة أو رابط HTTPS صحيح`);if(f.type==='list')value=Array.isArray(value)?value:String(value||'').split(/[\n،,]/).map(s=>s.trim()).filter(Boolean);if(f.type==='json'){try{value=typeof value==='string'?JSON.parse(value):value}catch{throw Error(`راجع صيغة ${f.label}`)}if(!Array.isArray(value))throw Error(`${f.label} لازم تكون قائمة`)}if(f.type==='number'){value=value===''||value==null?null:Number(value);if(value!==null&&!Number.isFinite(value))throw Error(`راجع ${f.label}`)}if(f.type==='checkbox')value=Boolean(value);output[f.key]=f.type==='number'?value:value??''}if(!output.name&&(output.title||output.home)){output.name=output.title||`${output.home} × ${output.away||''}`}return output}
