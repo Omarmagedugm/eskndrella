@@ -38,8 +38,18 @@ entry('sanview','Sanview','كافيه ومطعم في مول سان ستيفان
 };
 export const cityContent:Record<string,CityEntry[]> = {...originalCityContent};
 for (const [collection, records] of Object.entries(researched.collections)) {
- const additions:CityEntry[] = records.map(record => ({...record, reviewedAt:researched.reviewedAt, contentOrigin:'editorial'}));
- cityContent[collection] = [...additions, ...(originalCityContent[collection] || [])];
+ const additions:CityEntry[] = records.map((record:any) => ({...record, reviewedAt:researched.reviewedAt, contentOrigin:'editorial'}));
+ const combined = [...additions, ...(originalCityContent[collection] || [])];
+ cityContent[collection] = combined.map(item => collection === 'city_news' ? {
+  imageUrl: item.id === 'qaitbay-story' ? '/brand/eskendrella.png' : '/brand/magazine.jpeg',
+  innerImageUrl: item.id === 'qaitbay-story' ? '/brand/eskendrella.png' : '/brand/magazine.jpeg',
+  body: item.body || item.summary,
+  ...item,
+ } : {
+  imageUrl: item.imageUrl || '',
+  innerImageUrl: item.innerImageUrl || '',
+  ...item,
+ });
 }
 export function eventStatus(item:{startsAt?:string;endsAt?:string},now=Date.now()){if(!item.startsAt)return '';const start=Date.parse(item.startsAt),end=Date.parse(item.endsAt||item.startsAt);return now>end?'انتهت':now>=start?'جارية':'جاية';}
 export function formatCityDate(value:string){return new Intl.DateTimeFormat('ar-EG',{timeZone:'Africa/Cairo',dateStyle:'medium',...(value.includes('T')?{timeStyle:'short' as const}:{})}).format(new Date(value));}

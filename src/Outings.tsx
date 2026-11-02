@@ -1,6 +1,8 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {ArrowLeft, BookOpen, CalendarDays, Coffee, Compass, ExternalLink, Heart, Landmark, MapPin, Search, UsersRound, Wallet} from 'lucide-react';
 import {formatCityDate} from './cityContent';
+import {safeCover} from './coverImage';
+import {subscribePublic, firebaseReady} from './firebase';
 import {admissionFee, filterOutings, outingCatalog, type OutingCategory, type TicketType} from './outingCatalog';
 import './outings.css';
 
@@ -20,7 +22,12 @@ export default function Outings({navigate,save}:{navigate:(id:string)=>void;save
   const [maxFee,setMaxFee] = useState('all');
   const [ticket,setTicket] = useState<TicketType>('adult');
   const [people,setPeople] = useState('1');
-  const items = outingCatalog();
+  const [remoteOutings,setRemoteOutings] = useState<any[]>([]);
+  useEffect(()=>{
+    if(!firebaseReady)return;
+    return subscribePublic('city_outings', setRemoteOutings);
+  },[]);
+  const items = outingCatalog(remoteOutings);
   const filtered = filterOutings(items,{category,query,region,ticket,maxFee:maxFee==='all'?null:Number(maxFee)});
   const groupSize = Math.min(12,Math.max(1,Math.floor(Number(people)||1)));
 
@@ -62,7 +69,10 @@ export default function Outings({navigate,save}:{navigate:(id:string)=>void;save
       {filtered.map(item=>{
         const fee = admissionFee(item,ticket);
         const studentPrice = ticket==='student' && item.profile.student!==undefined;
+        const outerImg = safeCover(item.imageUrl) || safeCover(item.innerImageUrl);
+        const innerImg = safeCover(item.innerImageUrl) || safeCover(item.imageUrl);
         return <article className="card outing-card" key={item.id}>
+          {outerImg && <img className="city-card-cover" src={outerImg} alt={item.name} loading="lazy" style={{borderRadius:12,marginBottom:12}}/>}
           <div className={'outing-card-type '+item.profile.kind}>{item.profile.kind==='food'?<Coffee size={21}/>:item.profile.kind==='events'?<CalendarDays size={21}/>:<Landmark size={21}/>}<span>{kinds[item.profile.kind]}</span></div>
           <h3>{item.name}</h3><p className="outing-summary">{item.summary}</p>
           <span className="outing-region"><MapPin size={15}/>{item.region}</span>
@@ -72,9 +82,10 @@ export default function Outings({navigate,save}:{navigate:(id:string)=>void;save
             {ticket==='student'&&fee!==null&&!studentPrice&&<small>السعر المعروض للكبار؛ خصم الطلبة غير محدد في الدليل.</small>}
           </div>
           <details className="outing-details"><summary>التفاصيل والمصدر</summary>
+            {innerImg && <img className="city-modal-cover" src={innerImg} alt={item.name} loading="lazy" style={{marginTop:10}}/>}
             {item.openingHours&&<p><b>المواعيد:</b> {item.openingHours}</p>}{item.priceNote&&<p>{item.priceNote}</p>}{item.venue&&<p>{item.venue}</p>}{item.address&&<p>{item.address}</p>}
             <p>{item.sourceName}<br/>مراجعة المصدر: {formatCityDate(item.reviewedAt)}. تأكد من المواعيد والسعر وشروط الدخول قبل الزيارة.</p>
-            <a href={item.sourceUrl} target="_blank" rel="noreferrer">افتح المصدر <ExternalLink size={14}/></a>
+            {item.sourceUrl&&<a href={item.sourceUrl} target="_blank" rel="noreferrer">افتح المصدر <ExternalLink size={14}/></a>}
           </details>
           <button className="secondary outing-save" onClick={()=>save(`خروجة: ${item.name}`)}><Heart size={16}/> حفظ الخروجة</button>
         </article>;

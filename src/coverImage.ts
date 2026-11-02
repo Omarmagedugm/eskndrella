@@ -1,8 +1,11 @@
 export const MAX_COVER_LENGTH=180000;
 export function safeCover(value:unknown):string|null {
  if(typeof value!=='string')return null;
- if(value.length<=1000){try{const url=new URL(value);if(url.protocol==='https:'&&!url.username&&!url.password)return value}catch{}}
- return value.length<=MAX_COVER_LENGTH&&/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]*={0,2}$/.test(value)?value:null;
+ const trimmed=value.trim();
+ if(!trimmed)return null;
+ if(trimmed.startsWith('/')&&!trimmed.startsWith('//')&&trimmed.length<=300)return trimmed;
+ if(trimmed.length<=1000){try{const url=new URL(trimmed);if(url.protocol==='https:'&&!url.username&&!url.password)return trimmed}catch{}}
+ return trimmed.length<=MAX_COVER_LENGTH&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]*={0,2}$/.test(trimmed)?trimmed:null;
 }
 export async function prepareCover(file:File):Promise<string>{
  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('اختار صورة JPG أو PNG أو WebP.');

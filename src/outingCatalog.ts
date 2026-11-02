@@ -34,11 +34,63 @@ const profiles: Record<string, Profile> = {
   'ai-nov4': {kind:'events', students:true},
 };
 
-export function outingCatalog(now = Date.now()): Outing[] {
+export function defaultOutingRecords(): any[] {
   return ['city_places', 'city_businesses', 'city_events'].flatMap(collection =>
-    (cityContent[collection] || []).filter(item => profiles[item.id] &&
-      (!item.startsAt || Date.parse(item.endsAt || item.startsAt) >= now))
-      .map(item => ({...item, profile:profiles[item.id]})));
+    (cityContent[collection] || []).filter(item => profiles[item.id]).map(item => {
+      const p = profiles[item.id];
+      return {
+        id: item.id,
+        name: item.name,
+        kind: p.kind,
+        region: item.region,
+        summary: item.summary,
+        imageUrl: item.imageUrl || '',
+        innerImageUrl: item.innerImageUrl || '',
+        adultFee: p.adult ?? null,
+        studentFee: p.student ?? null,
+        family: !!p.family,
+        students: !!p.students,
+        openingHours: item.openingHours || '',
+        priceNote: item.priceNote || '',
+        venue: item.venue || '',
+        address: item.address || '',
+        startsAt: item.startsAt || '',
+        endsAt: item.endsAt || '',
+        sourceName: item.sourceName || 'إسكندريلا',
+        sourceUrl: item.sourceUrl || '',
+        reviewedAt: item.reviewedAt || '2026-11-02',
+      };
+    })
+  );
+}
+
+function toOuting(raw: any): Outing {
+  const profile: Profile = raw.profile || {
+    kind: (['culture', 'food', 'events'].includes(raw.kind) ? raw.kind : 'culture') as Profile['kind'],
+    family: Boolean(raw.family),
+    students: Boolean(raw.students),
+    ...(raw.adultFee != null && raw.adultFee !== '' ? { adult: Number(raw.adultFee) } : {}),
+    ...(raw.studentFee != null && raw.studentFee !== '' ? { student: Number(raw.studentFee) } : {}),
+  };
+  return {
+    ...raw,
+    reviewedAt: raw.reviewedAt || '2026-11-02',
+    sourceName: raw.sourceName || 'إسكندريلا',
+    sourceUrl: raw.sourceUrl || '',
+    profile,
+  };
+}
+
+export function outingCatalog(remote: any[] = [], now = Date.now()): Outing[] {
+  const remoteIds = new Set(remote.map(item => item.id));
+  const defaults = defaultOutingRecords().filter(item => !remoteIds.has(item.id));
+  const merged = [
+    ...remote.filter(item => item.published !== false && item.archived !== true),
+    ...defaults,
+  ];
+  return merged
+    .filter(item => !item.startsAt || Date.parse(item.endsAt || item.startsAt) >= now)
+    .map(toOuting);
 }
 
 export function admissionFee(item: Outing, ticket: TicketType): number | null {
