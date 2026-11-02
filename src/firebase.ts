@@ -1,0 +1,10 @@
+import {initializeAppCheck,ReCaptchaV3Provider} from 'firebase/app-check';
+import {initializeApp} from 'firebase/app';import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword} from 'firebase/auth';import {getFirestore,collection,getDocs,query,where,limit} from 'firebase/firestore';import {getFunctions,httpsCallable} from 'firebase/functions';
+const config=JSON.parse(import.meta.env.VITE_FIREBASE_CONFIG||'null');export const firebaseReady=!!config?.projectId;const app=firebaseReady?initializeApp(config):null;if(app&&import.meta.env.VITE_RECAPTCHA_SITE_KEY)initializeAppCheck(app,{provider:new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),isTokenAutoRefreshEnabled:true});export const auth=app?getAuth(app):null;export const db=app?getFirestore(app):null;const f=app?getFunctions(app,'europe-west1'):null;
+export async function login(){if(!auth)throw Error('تسجيل الدخول لسه مش متاح. جاري تجهيز الخدمة.');return signInWithPopup(auth,new GoogleAuthProvider())}
+export async function emailLogin(email:string,password:string,register=false){if(!auth)throw Error('تسجيل الدخول لسه مش متاح.');return register?createUserWithEmailAndPassword(auth,email,password):signInWithEmailAndPassword(auth,email,password)}
+export async function logout(){if(auth)await signOut(auth)}
+export async function call(name:string,data:unknown){if(!f)throw Error('الخدمة لسه بتتجهز. مفيش بيانات اتبعتت.');return (await httpsCallable(f,name)(data)).data}
+export async function loadLines(){if(!db)return [];return (await getDocs(query(collection(db,'transport_lines'),where('published','==',true),where('verification','==','verified'),limit(100)))).docs.map(d=>({id:d.id,...d.data()}))}
+export async function loadEdges(){if(!db)return [];return (await getDocs(query(collection(db,'route_edges'),where('published','==',true),where('verified','==',true),limit(2000)))).docs.map(d=>d.data())}
+export async function loadPublic(name:string):Promise<any[]>{if(!f)return [];return ((await call('publicContent',{collection:name})) as {records:any[]}).records}

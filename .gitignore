@@ -1,0 +1,10 @@
+node_modules
+dist
+.env*
+!.env.example
+.sites-runtime
+*.tar.gz
+functions/lib
+*.tsbuildinfo
+.firebase
+firebase-debug.log

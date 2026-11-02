@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import{plan,Edge}from'../src/routing.ts';import{normalize,searchPlaces}from'../src/data.ts';
+const edge=(from:string,to:string,extra:Partial<Edge>={}):Edge=>({from,to,line:'A',status:'active',verified:true,minutes:5,fare:3,...extra});
+test('Arabic variants normalize and fuzzy search',()=>{assert.equal(normalize('سِيدى بِشر'),normalize('سيدي بشر'));assert.equal(searchPlaces('محطه الرمل')[0].id,'raml');assert.equal(searchPlaces('سموحه')[0].id,'smouha')});
+test('reject all inactive and unverified edges',()=>{for(const status of ['suspended','construction','planned','development','closed','unknown'])assert.equal(plan([edge('a','b',{status})],'a','b','fastest'),null);assert.equal(plan([edge('a','b',{verified:false})],'a','b','fastest'),null)});
+test('fastest and cheapest select independently',()=>{const e=[edge('a','b',{minutes:2,fare:10}),edge('a','c',{line:'B',minutes:4,fare:1}),edge('c','b',{line:'B',minutes:4,fare:1})];assert.equal(plan(e,'a','b','fastest')?.minutes,2);assert.equal(plan(e,'a','b','cheapest')?.fare,2)});
+test('unknown fare never yields a complete total',()=>{assert.equal(plan([edge('a','b',{fare:null})],'a','b','fastest')?.fare,null);assert.equal(plan([edge('a','b',{fare:null})],'a','b','cheapest'),null)});
+test('unknown duration excluded from fastest',()=>{assert.equal(plan([edge('a','b',{minutes:null})],'a','b','fastest'),null)});
+test('prefer fewer transfers',()=>{const e=[edge('a','b',{line:'B'}),edge('b','c',{line:'C'}),edge('a','d',{line:'A'}),edge('d','c',{line:'A'})];assert.equal(plan(e,'a','c','transfers')?.transfers,0)});
+test('enforce total walking limit',()=>{assert.equal(plan([edge('a','b',{walking:true,meters:600}),edge('b','c',{walking:true,meters:600})],'a','c','fastest',1000),null)});
+test('cycles terminate and no journey invented',()=>{assert.equal(plan([edge('a','b'),edge('b','a')],'a','z','fastest'),null);assert.equal(plan([],'a','b','fastest'),null)});

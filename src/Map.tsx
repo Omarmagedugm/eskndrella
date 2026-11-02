@@ -1,0 +1,15 @@
+import {useEffect,useRef,useState} from 'react';
+import {Map,Marker,NavigationControl,FullscreenControl,LngLatBounds,setWorkerUrl} from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+import MapFallback from './MapFallback';import 'maplibre-gl/dist/maplibre-gl.css';import {places} from './data';
+setWorkerUrl(workerUrl);
+export default function MapView({demo=false,selected,onStop,overview}:{demo?:boolean;overview?:string;selected?:string;onStop?:(id:string)=>void}){
+ const ref=useRef<HTMLDivElement>(null),[failed,setFailed]=useState(false);const cb=useRef(onStop);cb.current=onStop;
+ useEffect(()=>{if(!ref.current)return;setFailed(false);let map:Map;try{map=new Map({container:ref.current,style:import.meta.env.VITE_MAP_STYLE_URL||'https://tiles.openfreemap.org/styles/liberty',center:[29.956,31.239],zoom:11.5,attributionControl:{compact:false},scrollZoom:false});}catch(error){console.error('Map initialization failed',String(error));setFailed(true);return}
+ map.addControl(new NavigationControl({showCompass:false}),'bottom-left');map.addControl(new FullscreenControl(),'top-left');map.on('error',()=>setFailed(true));map.on('load',()=>{setFailed(false);for(const layer of map.getStyle().layers){if(layer.type==='symbol'&&layer.layout?.['text-field']){try{map.setLayoutProperty(layer.id,'text-field',['coalesce',['get','name:ar'],['get','name']])}catch{}}}
+ places.filter(p=>overview?overview.split('|').includes(p.name):!['borg','agami'].includes(p.id)).forEach(p=>{const el=document.createElement('button');el.className='map-pin';el.title=p.name;el.setAttribute('aria-label',p.name);el.addEventListener('click',()=>cb.current?.(p.id));new Marker({element:el}).setLngLat([p.lng,p.lat]).addTo(map)});
+ if(demo){const points=places.filter(p=>['sidi-bishr','san','stanley','sidi-gaber','raml'].includes(p.id)).sort((a,b)=>b.lng-a.lng).map(p=>[p.lng,p.lat]);map.addSource('demo',{type:'geojson',data:{type:'Feature',properties:{},geometry:{type:'LineString',coordinates:points}}});map.addLayer({id:'demo',type:'line',source:'demo',paint:{'line-color':'#087ebd','line-width':5,'line-dasharray':[2,2]}});const bounds=new LngLatBounds();points.forEach(p=>bounds.extend(p as [number,number]));map.fitBounds(bounds,{padding:60,duration:600})}
+ if(overview){const bounds=new LngLatBounds();places.filter(p=>overview.split("|").includes(p.name)).forEach(p=>bounds.extend([p.lng,p.lat]));if(!bounds.isEmpty())map.fitBounds(bounds,{padding:55,maxZoom:13,duration:0})}
+ if(selected){const p=places.find(p=>p.id===selected);if(p)map.flyTo({center:[p.lng,p.lat],zoom:13})}});const resize=new ResizeObserver(()=>map.resize());resize.observe(ref.current);return()=>{resize.disconnect();map.remove()};},[demo,selected,overview]);
+ if(failed)return <MapFallback overview={overview} demo={demo} selected={selected} onStop={onStop}/>;return <><div className="leaflet" ref={ref} aria-label="خريطة إسكندرية التفاعلية"/>{failed&&<div className="map-error">الخريطة مش متاحة دلوقتي. البحث لسه شغال.</div>}</>
+}
