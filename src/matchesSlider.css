@@ -67,8 +67,17 @@
   border-color: rgba(21, 85, 112, 0.22);
 }
 
-.matches-slider-actions {
+.matches-slider-bottom-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 0 2px;
+}
+
+.matches-slider-nav-group {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }

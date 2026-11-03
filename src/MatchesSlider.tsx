@@ -104,17 +104,6 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
     });
   }, [allFixtures, periodFilter, selectedClub]);
 
-  // Counts for header badges
-  const counts = useMemo(() => {
-    let finishedCount = 0;
-    let upcomingCount = 0;
-    for (const f of allFixtures) {
-      if (getMatchStatus(f) === 'finished') finishedCount++;
-      else upcomingCount++;
-    }
-    return { finished: finishedCount, upcoming: upcomingCount, total: allFixtures.length };
-  }, [allFixtures]);
-
   // Slider navigation
   const scrollTrack = (direction: 'next' | 'prev') => {
     if (!trackRef.current) return;
@@ -132,46 +121,13 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
 
   return (
     <section className="matches-slider-section" aria-label="مباريات إسكندرية">
-      {/* Shortened Header */}
+      {/* Widget Header */}
       <div className="matches-slider-header-wrap">
         <div className="matches-slider-title-area">
           <h2>
             <Trophy size={17} />
             <span>مباريات إسكندرية</span>
-            <div className="matches-slider-badge-counts">
-              <span className="matches-badge-pill upcoming">{counts.upcoming.toLocaleString('ar-EG')} قادمة</span>
-              <span className="matches-badge-pill">{counts.finished.toLocaleString('ar-EG')} نتائج</span>
-            </div>
           </h2>
-        </div>
-
-        {/* Action buttons & navigation */}
-        <div className="matches-slider-actions">
-          <button
-            type="button"
-            className="matches-nav-btn"
-            aria-label="المباراة السابقة"
-            onClick={() => scrollTrack('prev')}
-            title="السابق"
-          >
-            <ChevronRight size={17} />
-          </button>
-          <button
-            type="button"
-            className="matches-nav-btn"
-            aria-label="المباراة التالية"
-            onClick={() => scrollTrack('next')}
-            title="التالي"
-          >
-            <ChevronLeft size={17} />
-          </button>
-          <button
-            type="button"
-            className="matches-all-link"
-            onClick={() => navigate('city-sports')}
-          >
-            الجدول كامل <ArrowLeft size={13}/>
-          </button>
         </div>
       </div>
 
@@ -324,6 +280,38 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
             })}
           </div>
         )}
+      </div>
+
+      {/* Bottom Controls / Actions Bar */}
+      <div className="matches-slider-bottom-bar">
+        <div className="matches-slider-nav-group">
+          <button
+            type="button"
+            className="matches-nav-btn"
+            aria-label="المباراة السابقة"
+            onClick={() => scrollTrack('prev')}
+            title="السابق"
+          >
+            <ChevronRight size={17} />
+          </button>
+          <button
+            type="button"
+            className="matches-nav-btn"
+            aria-label="المباراة التالية"
+            onClick={() => scrollTrack('next')}
+            title="التالي"
+          >
+            <ChevronLeft size={17} />
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="matches-all-link"
+          onClick={() => navigate('city-sports')}
+        >
+          الجدول كامل <ArrowLeft size={13}/>
+        </button>
       </div>
 
       {/* Modal with full Match Details */}

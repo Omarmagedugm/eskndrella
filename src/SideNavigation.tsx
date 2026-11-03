@@ -1,5 +1,5 @@
 import {useEffect,useRef} from 'react';
-import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Home, Map, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
+import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Home, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
 import BeachUmbrella from './BeachUmbrellaIcon';
 import './sideNavigation.css';
 
@@ -13,9 +13,7 @@ const groups = [
     {id:'city-events',label:'الفعاليات',icon:CalendarDays},
   ]},
   {title:'دليلك اليومي',links:[
-    {id:'home',label:'خطط مواصلاتك',icon:BusFront},
-    {id:'directory',label:'خطوط المواصلات والأسعار',icon:BusFront},
-    {id:'map',label:'خريطة المواصلات',icon:Map},
+    {id:'home',label:'مواصلات إسكندرية',icon:BusFront},
     {id:'city-services',label:'الخدمات',icon:Store},
     {id:'city-businesses',label:'المحلات والمطاعم',icon:Coffee},
   ]},
@@ -41,7 +39,33 @@ export default function SideNavigation({active,navigate,onClose}:{active:string;
     onClick={event=>{const rect=event.currentTarget.getBoundingClientRect();if(event.target===event.currentTarget&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom))onClose()}}>
     <div className="side-navigation-inner">
       <div className="side-navigation-header"><div><img src="/brand/eskendrella.png" alt=""/><span><strong id="side-navigation-title">إسكندريلا</strong><small>إسكندرية، على مزاجك</small></span></div><button className="icon-button" onClick={onClose} aria-label="إغلاق القائمة"><X size={22}/></button></div>
-      <nav aria-label="أقسام التطبيق">{groups.map(group=><div className="side-navigation-group" key={group.title}><h2>{group.title}</h2>{group.links.map(link=><button key={link.id} aria-current={active===link.id?'page':undefined} className={active===link.id?'active':''} onClick={()=>{navigate(link.id);onClose()}}><link.icon size={20}/><span>{link.label}</span><ArrowLeft size={15}/></button>)}</div>)}</nav>
+      <nav aria-label="أقسام التطبيق">
+        {groups.map(group => (
+          <div className="side-navigation-group" key={group.title}>
+            <h2>{group.title}</h2>
+            {group.links.map(link => {
+              const isCurrent = link.id === 'home'
+                ? (active === 'home' || active === 'directory' || active === 'map')
+                : active === link.id;
+              return (
+                <button
+                  key={link.id}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={isCurrent ? 'active' : ''}
+                  onClick={() => {
+                    navigate(link.id);
+                    onClose();
+                  }}
+                >
+                  <link.icon size={20} />
+                  <span>{link.label}</span>
+                  <ArrowLeft size={15} />
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
       <p className="side-navigation-footer">من قلب إسكندرية، لكل أهلها 〰</p>
     </div>
   </dialog>;

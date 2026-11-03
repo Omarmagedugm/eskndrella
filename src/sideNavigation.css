@@ -2,7 +2,7 @@
 .side-navigation{position:fixed;inset:0 0 0 auto;margin:0;width:min(365px,90vw);max-width:none;height:100dvh;max-height:none;padding:0;border:0;border-left:1px solid var(--border);background:var(--bg);color:var(--text);box-shadow:-18px 0 70px #102a4330;overflow-y:auto;overscroll-behavior:contain}
 .side-navigation[open]{animation:side-navigation-in .2s ease-out}
 .side-navigation::backdrop{background:#102a4380;backdrop-filter:blur(3px)}
-.side-navigation-inner{min-height:100%;display:flex;flex-direction:column;padding:20px 20px max(20px,env(safe-area-inset-bottom))}
+.side-navigation-inner{min-height:100%;display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top, 0px)) 20px max(20px,env(safe-area-inset-bottom, 0px))}
 .side-navigation-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0 20px;border-bottom:1px solid var(--border)}
 .side-navigation-header>div{display:flex;gap:10px;align-items:center}
 .side-navigation-header img{width:53px;height:53px;object-fit:contain;background:#faf2e2;border-radius:12px}
