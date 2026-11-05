@@ -1,14 +1,15 @@
 import {useEffect,useRef} from 'react';
-import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Home, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
+import {ArrowLeft, Bookmark, BusFront, CalendarDays, Coffee, Home, Landmark, MapPin, Newspaper, Store, Trophy, UserRound, X} from 'lucide-react';
 import BeachUmbrella from './BeachUmbrellaIcon';
 import './sideNavigation.css';
 
 const groups = [
   {title:'اكتشف إسكندرية',links:[
     {id:'city',label:'الرئيسية',icon:Home},
+    {id:'map',label:'المعالم',icon:MapPin},
     {id:'city-outings',label:'خروجات',icon:BeachUmbrella},
     {id:'city-sports',label:'رياضة سكندرية',icon:Trophy},
-    {id:'city-places',label:'الأماكن والمعالم',icon:MapPin},
+    {id:'city-places',label:'الأماكن والمعالم',icon:Landmark},
     {id:'city-news',label:'المجلة والأخبار',icon:Newspaper},
     {id:'city-events',label:'الفعاليات',icon:CalendarDays},
   ]},
@@ -45,7 +46,9 @@ export default function SideNavigation({active,navigate,onClose}:{active:string;
             <h2>{group.title}</h2>
             {group.links.map(link => {
               const isCurrent = link.id === 'home'
-                ? (active === 'home' || active === 'directory' || active === 'map')
+                ? (active === 'home' || active === 'directory')
+                : link.id === 'city-news'
+                ? (active === 'city-news' || active.startsWith('news:'))
                 : active === link.id;
               return (
                 <button

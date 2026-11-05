@@ -14,6 +14,7 @@ import {normalize} from './data';
 
 export const cityTabs=[
   {id:'city',label:'الرئيسية',icon:Compass},
+  {id:'map',label:'المعالم',icon:MapPin},
   {id:'city-outings',label:'خروجات',icon:BeachUmbrella},
   {id:'city-news',label:'المجلة',icon:Newspaper},
   {id:'city-services',label:'الدليل',icon:Store},
@@ -22,11 +23,11 @@ export const cityTabs=[
 
 const groups=[
   {id:'city-outings',title:'خروجات إسكندرية',subtitle:'فسحة على قد جيبك، ومع اللي تحبهم',icon:BeachUmbrella,color:'#247887'},
+  {id:'map',title:'خريطة المعالم السياحية',subtitle:'استكشف متاحف وقلاع وقصور وشواطئ المدينة',icon:MapPin,color:'#bc8523'},
   {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك، وأنشطة تلعبها',icon:Trophy,color:'#438d77'},
-  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'حكايات إسكندرية، واللي بيحصل فيها',icon:Newspaper,color:'#bc8523'},
+  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'حكايات إسكندرية، واللي بيحصل فيها',icon:Newspaper,color:'#d97706'},
   {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للي تحتاجه حواليك',icon:Store,color:'#79835a'},
-  {id:'home',title:'مواصلات إسكندرية',subtitle:'من أي حتة لأي حتة في إسكندرية',icon:BusFront,color:'#146486'},
-  {id:'city-places',title:'الأماكن والمعالم',subtitle:'اكتشف حتة جديدة في مدينتك',icon:MapPin,color:'#a38237'}
+  {id:'home',title:'مواصلات إسكندرية',subtitle:'من أي حتة لأي حتة في إسكندرية',icon:BusFront,color:'#146486'}
 ];
 
 const collectionFor:Record<string,string>={
@@ -291,7 +292,17 @@ export default function CityHub({
           {filtered.map(i=>{
             const cardCover=safeCover(i.imageUrl)||safeCover(i.innerImageUrl)||(tab==='city-news'?magazineCover:null);
             return (
-              <button key={i.id} className="card city-content-card" onClick={()=>setSelected(i)}>
+              <button 
+                key={i.id} 
+                className="card city-content-card" 
+                onClick={() => {
+                  if (tab === 'city-news') {
+                    navigate('news:' + i.id);
+                  } else {
+                    setSelected(i);
+                  }
+                }}
+              >
                 {cardCover&&<img className="city-card-cover" src={cardCover} alt={i.name} loading="lazy"/>}
                 <div>
                   <small>{categories[i.category]||i.category||i.region}</small>

@@ -1,0 +1,623 @@
+/* Tourist Places & Alexandria Landmarks Interactive Map */
+
+.tourist-map-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.tourist-map-hero {
+  background: linear-gradient(135deg, #102a43 0%, #1a3c5a 60%, #174240 100%);
+  color: #faf6ee;
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(16, 42, 67, 0.18);
+  border: 1px solid rgba(240, 198, 74, 0.2);
+}
+
+.tourist-map-hero::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(240, 198, 74, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.tourist-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.tourist-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #f0c64a;
+  background: rgba(240, 198, 74, 0.12);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+  border: 1px solid rgba(240, 198, 74, 0.25);
+}
+
+.tourist-map-hero h1 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  margin: 0 0 0.5rem;
+  color: #faf6ee;
+  letter-spacing: -0.02em;
+}
+
+.tourist-map-hero h1 span {
+  color: #f0c64a;
+}
+
+.tourist-map-hero p {
+  color: #d9e2ec;
+  font-size: 0.95rem;
+  max-width: 620px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tourist-stats-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.tourist-stat-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 0.35rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #faf6ee;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Control Bar: Categories & Search */
+.tourist-controls-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 18px;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border, #e2e8f0);
+  box-shadow: 0 4px 16px rgba(16, 42, 67, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.tourist-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--input-bg, #f8fafc);
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 14px;
+  padding: 0.6rem 0.9rem;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+
+.tourist-search-box:focus-within {
+  border-color: #f0c64a;
+  box-shadow: 0 0 0 3px rgba(240, 198, 74, 0.2);
+}
+
+.tourist-search-box input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.92rem;
+  font-family: inherit;
+  color: var(--text, #102a43);
+  outline: none;
+}
+
+.tourist-cat-track {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+
+.tourist-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--chip-bg, #f1f5f9);
+  color: var(--text-muted, #475569);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+}
+
+.tourist-cat-chip:hover {
+  background: var(--border, #e2e8f0);
+  color: var(--text, #102a43);
+}
+
+.tourist-cat-chip.active {
+  background: #102a43;
+  color: #f0c64a;
+  border-color: #102a43;
+  box-shadow: 0 3px 10px rgba(16, 42, 67, 0.2);
+}
+
+/* Map Container */
+.tourist-map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 520px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border, #cbd5e1);
+  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
+  background: #d9edf2;
+}
+
+.tourist-map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.tourist-map-overlay-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  background: rgba(16, 42, 67, 0.9);
+  color: #faf6ee;
+  padding: 0.4rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(240, 198, 74, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Map Custom Pins */
+.tourist-map-pin {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -100%);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.tourist-map-pin:hover,
+.tourist-map-pin.active {
+  transform: translate(-50%, -108%) scale(1.15);
+  z-index: 10;
+}
+
+.tourist-pin-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #102a43;
+  color: #faf6ee;
+  font-size: 0.76rem;
+  font-weight: 800;
+  border: 2px solid #f0c64a;
+  box-shadow: 0 4px 12px rgba(16, 42, 67, 0.35);
+  white-space: nowrap;
+}
+
+.tourist-map-pin.active .tourist-pin-badge {
+  background: #f0c64a;
+  color: #102a43;
+  border-color: #102a43;
+}
+
+.tourist-pin-pointer {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid #102a43;
+  margin-top: -1px;
+}
+
+.tourist-map-pin.active .tourist-pin-pointer {
+  border-top-color: #f0c64a;
+}
+
+/* Selected Landmark Highlight Banner */
+.tourist-selected-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 20px;
+  padding: 1.25rem;
+  border: 2px solid #f0c64a;
+  box-shadow: 0 8px 25px rgba(240, 198, 74, 0.15);
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+  animation: slideInUp 0.25s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tourist-selected-img {
+  width: 100%;
+  height: 120px;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.tourist-selected-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tourist-selected-info h3 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--text, #102a43);
+  margin: 0;
+}
+
+.tourist-selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.tourist-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: #eef2f6;
+  color: #1e293b;
+}
+
+.tourist-pill-tag.gold {
+  background: rgba(240, 198, 74, 0.2);
+  color: #854d0e;
+  border: 1px solid rgba(240, 198, 74, 0.4);
+}
+
+.tourist-selected-info p {
+  font-size: 0.88rem;
+  color: var(--text-muted, #475569);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tourist-selected-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 140px;
+}
+
+/* Places Grid List */
+.tourist-places-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tourist-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tourist-section-head h2 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--text, #102a43);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tourist-section-count {
+  font-size: 0.82rem;
+  font-weight: 800;
+  background: rgba(16, 42, 67, 0.08);
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  color: var(--text, #102a43);
+}
+
+.tourist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.tourist-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border, #e2e8f0);
+  box-shadow: 0 4px 14px rgba(16, 42, 67, 0.04);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.tourist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(16, 42, 67, 0.1);
+  border-color: #f0c64a;
+}
+
+.tourist-card.selected {
+  border-color: #f0c64a;
+  box-shadow: 0 0 0 2px #f0c64a, 0 10px 25px rgba(240, 198, 74, 0.15);
+}
+
+.tourist-card-cover-wrap {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: #cbd5e1;
+}
+
+.tourist-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.tourist-card:hover .tourist-card-img {
+  transform: scale(1.05);
+}
+
+.tourist-card-cat-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(16, 42, 67, 0.85);
+  color: #f0c64a;
+  backdrop-filter: blur(6px);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid rgba(240, 198, 74, 0.3);
+}
+
+.tourist-card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.tourist-card-body h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text, #102a43);
+  line-height: 1.35;
+}
+
+.tourist-card-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
+}
+
+.tourist-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted, #475569);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tourist-card-foot {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #f1f5f9);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tourist-btn-locate {
+  background: rgba(16, 42, 67, 0.08);
+  color: var(--text, #102a43);
+  border: none;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.15s;
+}
+
+.tourist-btn-locate:hover {
+  background: #102a43;
+  color: #f0c64a;
+}
+
+/* Landmark Details Modal */
+.tourist-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 42, 67, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tourist-modal-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 24px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border, #cbd5e1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tourist-modal-close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(16, 42, 67, 0.75);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tourist-modal-close:hover {
+  background: #102a43;
+  color: #f0c64a;
+}
+
+.tourist-modal-cover {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.tourist-modal-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tourist-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin: 0 0 0.4rem;
+  color: var(--text, #102a43);
+}
+
+.tourist-modal-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  background: var(--card-subtle, #f8fafc);
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.tourist-modal-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text, #1e293b);
+}
+
+.tourist-modal-detail-item strong {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--text-muted, #64748b);
+}
+
+.tourist-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+  .tourist-map-wrapper {
+    height: 380px;
+  }
+  .tourist-selected-card {
+    grid-template-columns: 1fr;
+  }
+  .tourist-selected-img {
+    height: 140px;
+  }
+  .tourist-modal-details-grid {
+    grid-template-columns: 1fr;
+  }
+}

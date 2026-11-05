@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { subscribePublic, firebaseReady } from './firebase';
 import { sportsContent, type Fixture, formatSportsDay, formatKickoff, fixtureGoogleSearchUrl } from './sportsModel';
-import { ClubLogo, registerCustomClubLogos } from './clubLogos';
+import { ClubLogo, registerCustomClubLogos, simplifyClubName } from './clubLogos';
 import './matchesSlider.css';
 
 interface MatchesSliderProps {
@@ -107,13 +107,13 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
   // Slider navigation
   const scrollTrack = (direction: 'next' | 'prev') => {
     if (!trackRef.current) return;
-    const scrollAmount = 260;
+    const scrollAmount = 295;
     const dx = direction === 'next' ? -scrollAmount : scrollAmount;
     trackRef.current.scrollBy({ left: dx, behavior: 'smooth' });
   };
 
   const handleSaveMatch = (fixture: Fixture) => {
-    const text = `مباراة: ${fixture.home} × ${fixture.away} (${fixture.competition}) - ${fixture.date || 'الموعد قيد التأكيد'}`;
+    const text = `مباراة: ${simplifyClubName(fixture.home)} × ${simplifyClubName(fixture.away)} (${fixture.competition}) - ${fixture.date || 'الموعد قيد التأكيد'}`;
     if (save) save(text);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2200);
@@ -218,12 +218,12 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
                     {/* Home Team */}
                     <div className="match-mini-team">
                       <ClubLogo
-                        name={match.home}
+                        name={simplifyClubName(match.home)}
                         customUrl={match.homeLogo}
                         size={22}
                       />
                       <span className={`match-mini-team-name ${homeWon ? 'winner' : ''}`}>
-                        {match.home}
+                        {simplifyClubName(match.home)}
                       </span>
                     </div>
 
@@ -252,12 +252,12 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
                     {/* Away Team */}
                     <div className="match-mini-team away">
                       <ClubLogo
-                        name={match.away}
+                        name={simplifyClubName(match.away)}
                         customUrl={match.awayLogo}
                         size={22}
                       />
                       <span className={`match-mini-team-name ${awayWon ? 'winner' : ''}`}>
-                        {match.away}
+                        {simplifyClubName(match.away)}
                       </span>
                     </div>
                   </div>
@@ -329,14 +329,14 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
 
             <div className="match-modal-head">
               <span>{activeModalMatch.competition}</span>
-              <h3>{activeModalMatch.home} × {activeModalMatch.away}</h3>
+              <h3>{simplifyClubName(activeModalMatch.home)} × {simplifyClubName(activeModalMatch.away)}</h3>
             </div>
 
             {/* Scoreboard in modal with Fixed Logos */}
             <div className="match-modal-scoreboard">
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <ClubLogo name={activeModalMatch.home} customUrl={activeModalMatch.homeLogo} size={42} />
-                <strong style={{ fontSize: 13 }}>{activeModalMatch.home}</strong>
+                <ClubLogo name={simplifyClubName(activeModalMatch.home)} customUrl={activeModalMatch.homeLogo} size={42} />
+                <strong style={{ fontSize: 13 }}>{simplifyClubName(activeModalMatch.home)}</strong>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -357,8 +357,8 @@ export default function MatchesSlider({ navigate, save }: MatchesSliderProps) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <ClubLogo name={activeModalMatch.away} customUrl={activeModalMatch.awayLogo} size={42} />
-                <strong style={{ fontSize: 13 }}>{activeModalMatch.away}</strong>
+                <ClubLogo name={simplifyClubName(activeModalMatch.away)} customUrl={activeModalMatch.awayLogo} size={42} />
+                <strong style={{ fontSize: 13 }}>{simplifyClubName(activeModalMatch.away)}</strong>
               </div>
             </div>
 

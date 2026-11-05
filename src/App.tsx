@@ -1,7 +1,9 @@
 import SideNavigation from './SideNavigation';
 import TransportHub from './TransportHub';
+import TouristMap from './TouristMap';
 import { geography } from './adminModel';
 import CityHub, { cityTabs } from './CityHub';
+import NewsArticlePage from './NewsArticlePage';
 import AdminDashboard from './AdminDashboard';
 import { PWAInstallBanner, PWAInstallHeaderButton } from './PWAInstallBanner';
 import { useEffect, useState } from 'react';
@@ -48,7 +50,7 @@ import { plan, Edge } from './routing';
 
 const tabs = [
   { id: 'home', label: 'الرئيسية', icon: Home },
-  { id: 'map', label: 'الخريطة', icon: MapIcon },
+  { id: 'map', label: 'المعالم', icon: MapIcon },
   { id: 'directory', label: 'المواصلات', icon: BusFront },
   { id: 'saved', label: 'المحفوظات', icon: Bookmark },
   { id: 'profile', label: 'حسابي', icon: UserRound },
@@ -262,7 +264,7 @@ export default function App() {
     );
   }
 
-  const rootNavigation = tab.startsWith('city') || tab === 'profile' || tab === 'admin';
+  const rootNavigation = tab.startsWith('city') || tab === 'map' || tab === 'profile' || tab === 'admin' || tab.startsWith('news:');
   const navigationTabs = rootNavigation ? cityTabs : tabs;
   const appName = settings.name || 'إسكندريلا';
   const appSubtitle = settings.subtitle || 'ESKENDRELLA · ALEXANDRIA';
@@ -331,6 +333,15 @@ export default function App() {
       )}
       <main onClick={() => focused && setFocused('')}>
         <div className="content" onClick={e => e.stopPropagation()}>
+          {tab.startsWith('news:') && (
+            <NewsArticlePage
+              articleId={tab.replace('news:', '')}
+              navigate={navigate}
+              save={save}
+              saved={saved}
+              magazineCover={settings.magazineImageUrl || '/brand/magazine.jpeg'}
+            />
+          )}
           {tab.startsWith('city') && (
             <CityHub
               tab={tab}
@@ -350,7 +361,7 @@ export default function App() {
               <b>مواصلات إسكندرية</b>
             </div>
           )}
-          {(tab === 'home' || tab === 'map' || tab === 'directory') && (
+          {(tab === 'home' || tab === 'directory') && (
             <TransportHub
               key={tab}
               from={from}
@@ -371,8 +382,15 @@ export default function App() {
                   .then(setLines)
                   .catch(() => {});
               }}
-              initialSubView={tab === 'directory' ? 'lines' : tab === 'map' ? 'nearby' : 'planner'}
+              initialSubView={tab === 'directory' ? 'lines' : 'planner'}
               showFaresSetting={settings.showFares !== false}
+            />
+          )}
+          {tab === 'map' && (
+            <TouristMap
+              navigate={navigate}
+              save={save}
+              saved={saved}
             />
           )}
           {tab === 'saved' && (

@@ -4,17 +4,11 @@ import {
   ChevronLeft, 
   Newspaper, 
   Clock, 
-  ExternalLink, 
-  X, 
-  Heart, 
-  Share2, 
   MapPin, 
   Pause, 
   Play, 
   ArrowLeft,
-  Building,
-  CheckCircle2,
-  BookmarkCheck
+  Building
 } from 'lucide-react';
 import { subscribePublic, firebaseReady } from './firebase';
 import { directoryEntries } from './cityDirectory';
@@ -112,8 +106,6 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
   const [news, setNews] = useState<CityEntry[]>(FALLBACK_NEWS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [selectedArticle, setSelectedArticle] = useState<CityEntry | null>(null);
-  const [copied, setCopied] = useState(false);
 
   // Touch swipe handling
   const touchStartX = useRef<number | null>(null);
@@ -147,14 +139,14 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
     setCurrentIndex((prev) => (prev - 1 + (totalSlides || 1)) % (totalSlides || 1));
   }, [totalSlides]);
 
-  // Autoplay timer: advances every 5 seconds when not paused and modal closed
+  // Autoplay timer: advances every 5 seconds when not paused
   useEffect(() => {
-    if (isPaused || selectedArticle || totalSlides <= 1) return;
+    if (isPaused || totalSlides <= 1) return;
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(interval);
-  }, [isPaused, selectedArticle, nextSlide, totalSlides]);
+  }, [isPaused, nextSlide, totalSlides]);
 
   // Handle touch swiping (RTL: swipe left moves to next, swipe right moves to previous)
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -184,24 +176,7 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
   const currentItem = news[currentIndex] || FALLBACK_NEWS[0];
   const coverUrl = safeCover(currentItem.imageUrl) || safeCover(currentItem.innerImageUrl) || '/brand/magazine.jpeg';
 
-  const handleShare = async (item: CityEntry) => {
-    const text = `${item.name}\n${item.summary}\nعبر تطبيق إسكندريلا`;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: item.name,
-          text: text,
-          url: window.location.href,
-        });
-        return;
-      } catch {
-        // User cancelled or unsupported
-      }
-    }
-    navigator.clipboard?.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
+
 
   return (
     <section 
@@ -273,12 +248,12 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
       >
         <div 
           className="esk-news-slide"
-          onClick={() => setSelectedArticle(currentItem)}
+          onClick={() => navigate('news:' + (currentItem.id || currentItem.name))}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
-              setSelectedArticle(currentItem);
+              navigate('news:' + (currentItem.id || currentItem.name));
             }
           }}
           aria-label={`اقرأ الخبر: ${currentItem.name}`}
@@ -318,7 +293,7 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
               </span>
 
               <span className="esk-news-read-cta">
-                اقرأ التفاصيل الكاملة <ArrowLeft size={15} />
+                اقرأ الخبر في صفحة كاملة <ArrowLeft size={15} />
               </span>
             </div>
           </div>
@@ -362,116 +337,42 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
         </div>
       </div>
 
-      {/* Quick Navigation Chips Strip */}
-      <div className="esk-news-chips-strip" role="tablist" aria-label="عناوين الأخبار السريعة">
-        {news.map((item, idx) => (
-          <button
-            key={item.id || idx}
-            type="button"
-            className={`esk-news-chip ${idx === currentIndex ? 'active' : ''}`}
-            onClick={() => setCurrentIndex(idx)}
-            role="tab"
-            aria-selected={idx === currentIndex}
-          >
-            <span className="esk-news-chip-cat">{item.category || 'خبر'}</span>
-            <span className="esk-news-chip-title">{item.name}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Full Article Modal */}
-      {selectedArticle && (
-        <div className="esk-news-modal-overlay" onClick={() => setSelectedArticle(null)}>
-          <article 
-            className="esk-news-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={selectedArticle.name}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
+      {/* News Cards Strip Under Slider (with Images) */}
+      <div className="esk-news-chips-strip" role="tablist" aria-label="أحدث الأخبار">
+        {news.map((item, idx) => {
+          const chipCover = safeCover(item.imageUrl) || safeCover(item.innerImageUrl) || '/brand/magazine.jpeg';
+          return (
+            <button
+              key={item.id || idx}
               type="button"
-              className="esk-news-modal-close" 
-              onClick={() => setSelectedArticle(null)}
-              aria-label="إغلاق تفاصيل الخبر"
+              className={`esk-news-chip ${idx === currentIndex ? 'active' : ''}`}
+              onClick={() => {
+                if (idx === currentIndex) {
+                  navigate('news:' + (item.id || item.name));
+                } else {
+                  setCurrentIndex(idx);
+                }
+              }}
+              role="tab"
+              aria-selected={idx === currentIndex}
+              title={item.name}
             >
-              <X size={20} />
-            </button>
-
-            <div className="esk-news-modal-cover">
-              <img 
-                src={safeCover(selectedArticle.imageUrl) || safeCover(selectedArticle.innerImageUrl) || '/brand/magazine.jpeg'} 
-                alt={selectedArticle.name} 
-              />
-            </div>
-
-            <div className="esk-news-modal-body">
-              <div className="esk-news-modal-meta">
-                <span className="esk-news-category-badge">
-                  <Newspaper size={13} />
-                  {selectedArticle.category || 'أخبار إسكندرية'}
-                </span>
-
-                {selectedArticle.region && (
-                  <span className="esk-news-region-badge">
-                    <MapPin size={13} />
-                    {selectedArticle.region}
+              <div className="esk-news-chip-thumb">
+                <img src={chipCover} alt={item.name} loading="lazy" />
+                <span className="esk-news-chip-badge">{item.category || 'خبر'}</span>
+              </div>
+              <div className="esk-news-chip-info">
+                <span className="esk-news-chip-title">{item.name}</span>
+                {item.publishedDate && (
+                  <span className="esk-news-chip-date">
+                    <Clock size={11} /> {formatCityDate(item.publishedDate)}
                   </span>
                 )}
               </div>
-
-              <h2 className="esk-news-modal-title">{selectedArticle.name}</h2>
-
-              <div className="esk-news-modal-stamp">
-                <Building size={16} />
-                <span><b>المصدر المعتمد:</b> {selectedArticle.sourceName || 'تحرير إسكندريلا'}</span>
-                {selectedArticle.publishedDate && (
-                  <span><b>تاريخ النشر:</b> {formatCityDate(selectedArticle.publishedDate)}</span>
-                )}
-                {selectedArticle.reviewedAt && (
-                  <span><b>آخر مراجعة:</b> {formatCityDate(selectedArticle.reviewedAt)}</span>
-                )}
-              </div>
-
-              <p className="esk-news-modal-text">
-                {selectedArticle.body || selectedArticle.summary}
-              </p>
-
-              <div className="esk-news-modal-actions">
-                {selectedArticle.sourceUrl && (
-                  <a 
-                    href={selectedArticle.sourceUrl} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="esk-news-action-btn primary-action"
-                  >
-                    رابط الخبر بالمصدر الأصلي <ExternalLink size={16} />
-                  </a>
-                )}
-
-                {save && (
-                  <button 
-                    type="button"
-                    className="esk-news-action-btn"
-                    onClick={() => save(`خبر: ${selectedArticle.name}`)}
-                  >
-                    <Heart size={16} /> حفظ في المحفوظات
-                  </button>
-                )}
-
-                <button 
-                  type="button"
-                  className="esk-news-action-btn"
-                  onClick={() => handleShare(selectedArticle)}
-                >
-                  {copied ? <CheckCircle2 size={16} color="#16a34a" /> : <Share2 size={16} />}
-                  {copied ? 'تم نسخ الرابط والملخص' : 'مشاركة الخبر'}
-                </button>
-              </div>
-            </div>
-          </article>
-        </div>
-      )}
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 }

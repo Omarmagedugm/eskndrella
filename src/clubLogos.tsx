@@ -4,7 +4,7 @@ import { safeCover } from './coverImage';
 // Official Alexandria clubs SVG crests as data URIs and vector renderers
 export const ALEX_CLUB_LOGOS: Record<string, { name: string; short: string; color: string; bg: string; svg: string }> = {
   ittihad: {
-    name: 'الاتحاد السكندري',
+    name: 'الاتحاد',
     short: 'الاتحاد',
     color: '#1b7a42',
     bg: '#e8f5e9',
@@ -127,7 +127,7 @@ export const ALEX_CLUB_LOGOS: Record<string, { name: string; short: string; colo
     </svg>`
   },
   abuqir: {
-    name: 'أبو قير للأسمدة',
+    name: 'أبو قير',
     short: 'أبو قير',
     color: '#0f766e',
     bg: '#ccfbf1',
@@ -224,6 +224,14 @@ export function getClubCustomLogo(idOrName?: string | null): string | null {
   return null;
 }
 
+export function simplifyClubName(name?: string | null): string {
+  if (!name) return '';
+  const n = name.trim();
+  if (n === 'الاتحاد السكندري' || n.startsWith('الاتحاد السكندري') || n === 'الاتحاد') return 'الاتحاد';
+  if (n === 'أبو قير للأسمدة' || n === 'ابو قير للاسمدة' || n.includes('أبو قير للأسمدة') || n.includes('ابو قير للاسمدة') || n === 'أبو قير' || n === 'ابو قير') return 'أبو قير';
+  return n;
+}
+
 export interface ClubLogoProps {
   name: string;
   id?: string;
@@ -234,14 +242,15 @@ export interface ClubLogoProps {
 }
 
 export function ClubLogo({ name, id, customUrl, size = 32, className = '', style }: ClubLogoProps) {
+  const cleanName = simplifyClubName(name);
   // If custom URL uploaded in admin, or registered globally for this club, prioritize it
-  const resolved = customUrl || getClubCustomLogo(id || name);
+  const resolved = customUrl || getClubCustomLogo(id || cleanName);
   const validCover = safeCover(resolved);
   if (validCover) {
     return (
       <img
         src={validCover}
-        alt={name}
+        alt={cleanName}
         className={`club-logo-img ${className}`}
         style={{
           width: size,
@@ -257,7 +266,7 @@ export function ClubLogo({ name, id, customUrl, size = 32, className = '', style
   }
 
   // Alexandria club fixed vector crest
-  const alexKey = matchAlexClubKey(id || name);
+  const alexKey = matchAlexClubKey(id || cleanName);
   if (alexKey && ALEX_CLUB_LOGOS[alexKey]) {
     const club = ALEX_CLUB_LOGOS[alexKey];
     return (
@@ -279,13 +288,13 @@ export function ClubLogo({ name, id, customUrl, size = 32, className = '', style
   }
 
   // Opposition club badge
-  const oppEntry = Object.entries(OPPOSITION_BADGES).find(([k]) => name.includes(k));
+  const oppEntry = Object.entries(OPPOSITION_BADGES).find(([k]) => cleanName.includes(k));
   if (oppEntry) {
     const opp = oppEntry[1];
     return (
       <div
         className={`club-logo-opp ${className}`}
-        title={name}
+        title={cleanName}
         style={{
           width: size,
           height: size,
@@ -312,7 +321,7 @@ export function ClubLogo({ name, id, customUrl, size = 32, className = '', style
   return (
     <div
       className={`club-logo-generic ${className}`}
-      title={name}
+      title={cleanName}
       style={{
         width: size,
         height: size,
@@ -328,7 +337,7 @@ export function ClubLogo({ name, id, customUrl, size = 32, className = '', style
         ...style
       }}
     >
-      {name.trim().slice(0, 2)}
+      {cleanName.trim().slice(0, 2)}
     </div>
   );
 }
@@ -349,6 +358,7 @@ export function ClubNameWithBadge({
   className?: string;
   bold?: boolean;
 }) {
+  const cleanName = simplifyClubName(name);
   return (
     <span
       className={`club-name-with-badge ${className}`}
@@ -360,8 +370,8 @@ export function ClubNameWithBadge({
         whiteSpace: 'nowrap'
       }}
     >
-      <ClubLogo name={name} id={id} customUrl={customUrl} size={size} />
-      <span>{name}</span>
+      <ClubLogo name={cleanName} id={id} customUrl={customUrl} size={size} />
+      <span>{cleanName}</span>
     </span>
   );
 }

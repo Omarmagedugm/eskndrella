@@ -5,7 +5,7 @@ import {safeCover} from './coverImage';
 import {normalize} from './data';
 import {subscribePublic,firebaseReady} from './firebase';
 import {clubGoogleSearchUrl,clubSavedKey,filterFixtures,filterSportsActivities,fixtureGoogleSearchUrl,fixtureSavedKey,fixtureState,formatKickoff,formatSportsDay,sportNames,sportsContent,sportsSnapshotStale,type Club,type MatchPeriod} from './sportsModel';
-import { ClubLogo, registerCustomClubLogos } from './clubLogos';
+import { ClubLogo, registerCustomClubLogos, simplifyClubName } from './clubLogos';
 import './sports.css';
 
 type Props={navigate:(id:string)=>void;save:(value:string)=>void;saved:string[]};
@@ -77,7 +77,7 @@ export default function SportsHub({navigate,save,saved}:Props) {
   return <section className="sports-page" aria-labelledby="sports-title">
     <div className="sports-hero">
       <div className="sports-hero-copy"><span className="city-kicker"><Trophy size={16}/> شجّع فريقك، والعب لعبتك</span><h1 id="sports-title">رياضة <span>سكندرية.</span></h1><p>مواعيد أندية مدينتك، وأنشطة تخليك تتحرك.<br/>من المدرج للملعب، كلنا إسكندرانية.</p><div className="sports-summary"><span>{allClubs.length.toLocaleString('ar-EG')} أندية</span><span>{allFixtures.length.toLocaleString('ar-EG')} مواجهات محفوظة</span><span>{allActivities.length.toLocaleString('ar-EG')} أنشطة وفعاليات</span></div></div>
-      <aside className="sports-next card" aria-label="أقرب موعد مدرج"><span className="eyebrow"><CalendarDays size={15}/> أقرب موعد مدرج {selectedClub?`لـ${selectedClub.shortName}`:''}</span>{next?<><h2>{next.home}<span>×</span>{next.away}</h2><p>{next.competition}</p><b>{formatSportsDay(next.date!)}</b><span className="sports-next-time"><Clock3 size={16}/>{formatKickoff(next.startsAt)}</span><small>المواعيد قابلة للتعديل · راجع المصدر</small></>:<><h2>نستنى موعد موثوق</h2><p>مفيش موعد قادم محسوم في البيانات المحفوظة لهذا الاختيار.</p></>}</aside>
+      <aside className="sports-next card" aria-label="أقرب موعد مدرج"><span className="eyebrow"><CalendarDays size={15}/> أقرب موعد مدرج {selectedClub?`لـ${selectedClub.shortName}`:''}</span>{next?<><h2>{simplifyClubName(next.home)}<span>×</span>{simplifyClubName(next.away)}</h2><p>{next.competition}</p><b>{formatSportsDay(next.date!)}</b><span className="sports-next-time"><Clock3 size={16}/>{formatKickoff(next.startsAt)}</span><small>المواعيد قابلة للتعديل · راجع المصدر</small></>:<><h2>نستنى موعد موثوق</h2><p>مفيش موعد قادم محسوم في البيانات المحفوظة لهذا الاختيار.</p></>}</aside>
     </div>
     <div className="sports-snapshot"><ShieldCheck size={18}/><p>مراجعة المصادر: <b>{formatCityDate(sportsContent.reviewedAt)}</b> · المواعيد الواضحة بتوقيت إسكندرية.<br/><span>{sportsSnapshotStale(now)?'النسخة المحفوظة تحتاج مراجعة أحدث. افتح المصدر لتأكيد أي موعد.':'دي نسخة مجمّعة من المصادر، مش متابعة مباشرة. الوقت أو الملعب غير الموضح يفضل بانتظار التأكيد.'}</span></p></div>
     <div className="sports-tabs" aria-label="أقسام رياضة سكندرية">{[{id:'clubs',label:'أندية إسكندرية',icon:UsersRound},{id:'matches',label:'المباريات',icon:CalendarDays},{id:'activities',label:'الأنشطة',icon:Dumbbell}].map(item=><button key={item.id} className={view===item.id?'active':''} aria-pressed={view===item.id} onClick={()=>changeView(item.id as typeof view)}><item.icon size={18}/>{item.label}</button>)}</div>
@@ -98,8 +98,8 @@ export default function SportsHub({navigate,save,saved}:Props) {
           <div className="sports-match-top"><span>{item.competition}</span><span className={'sports-state '+state}>{stateLabels[state]}</span></div>
           <div className="sports-match-teams" style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',alignItems:'center',gap:8}}>
             <span style={{display:'inline-flex',alignItems:'center',gap:6,minWidth:0}}>
-              <ClubLogo name={item.home} customUrl={item.homeLogo} size={24}/>
-              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.home}</strong>
+              <ClubLogo name={simplifyClubName(item.home)} customUrl={item.homeLogo} size={24}/>
+              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{simplifyClubName(item.home)}</strong>
             </span>
             {typeof item.homeScore === 'number' && typeof item.awayScore === 'number' ? (
               <span style={{fontSize:16,fontWeight:900,color:'#1b7a42',padding:'2px 8px',background:'rgba(27,122,66,0.1)',borderRadius:8,whiteSpace:'nowrap'}}>
@@ -109,8 +109,8 @@ export default function SportsHub({navigate,save,saved}:Props) {
               <span style={{color:'var(--muted)',fontWeight:800}}>×</span>
             )}
             <span style={{display:'inline-flex',alignItems:'center',justifyContent:'flex-end',gap:6,minWidth:0}}>
-              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.away}</strong>
-              <ClubLogo name={item.away} customUrl={item.awayLogo} size={24}/>
+              <strong style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{simplifyClubName(item.away)}</strong>
+              <ClubLogo name={simplifyClubName(item.away)} customUrl={item.awayLogo} size={24}/>
             </span>
           </div>
           <div className="sports-match-date"><CalendarDays size={17}/><b>{item.date?formatSportsDay(item.date):'اليوم بانتظار التأكيد'}</b></div>
