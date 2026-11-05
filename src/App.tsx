@@ -1,12 +1,16 @@
 import SideNavigation from './SideNavigation';
-import TransportHub from './TransportHub';
-import TouristMap from './TouristMap';
+const TransportHub=lazy(()=>import('./TransportHub'));
+const MagazineHome=lazy(()=>import('./MagazineHome'));
+const MagazineIndex=lazy(()=>import('./MagazineIndex'));
+const EditorialDesk=lazy(()=>import('./EditorialDesk'));
+import {readRoute,routeHref} from './navigation';
+const TouristMap=lazy(()=>import('./TouristMap'));
 import { geography } from './adminModel';
 import CityHub, { cityTabs } from './CityHub';
 import NewsArticlePage from './NewsArticlePage';
-import AdminDashboard from './AdminDashboard';
+const AdminDashboard=lazy(()=>import('./AdminDashboard'));
 import { PWAInstallBanner, PWAInstallHeaderButton } from './PWAInstallBanner';
-import { useEffect, useState } from 'react';
+import {useEffect,useState,lazy,Suspense} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -29,6 +33,7 @@ import {
   Info,
   ArrowUpLeft,
   ExternalLink,
+  Search,
 } from 'lucide-react';
 import { places, modes, statuses, normalize } from './data';
 import {
@@ -43,7 +48,6 @@ import {
   loadPublic,
   subscribeLines,
   subscribePublic,
-  syncLocalDraftsToCloud,
 } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { plan, Edge } from './routing';
@@ -77,7 +81,7 @@ function readSaved() {
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab] = useState('city');
+  const [tab,setTab]=useState(()=>readRoute(window.location.pathname));
   const [dark, setDark] = useState(localStorage.getItem('at-dark') === 'true');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -114,8 +118,6 @@ export default function App() {
   });
 
   useEffect(() => {
-    // Automatically migrate any previous local drafts to Firestore online
-    syncLocalDraftsToCloud().catch(() => {});
 
     const unsubSettings = subscribePublic('app_settings', r => {
       const main = r.find(x => x.id === 'main' && !x.archived);
@@ -174,12 +176,16 @@ export default function App() {
     }
   }, [toast]);
 
-  function navigate(id: string) {
+  function navigate(id:string){
+    if(id!==tab)window.history.pushState({route:id},'',routeHref(id));
     setTab(id);
     setResults(false);
     setDemo(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  useEffect(()=>{const back=()=>{setTab(readRoute(location.pathname));setResults(false);setMenuOpen(false);};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
+  useEffect(()=>{if(!tab.startsWith('news:')){document.title='إسكندريلا | مجلة من قلب المدينة';const description='حكايات وثقافة وأخبار ودليل إسكندرية، بمصادرها وتواريخها.';for(const key of ['description','og:description']){const meta=document.querySelector<HTMLMetaElement>(key==='description'?'meta[name=description]':'meta[property="og:description"]');if(meta)meta.content=description;}for(const key of ['og:url','og:image','og:type'])document.querySelector(`meta[property="${key}"]`)?.remove();const title=document.querySelector<HTMLMetaElement>('meta[property="og:title"]');if(title)title.content='إسكندريلا | مجلة من قلب المدينة';}requestAnimationFrame(()=>document.getElementById('main-content')?.focus({preventScroll:true}));},[tab]);
 
   function save(value: string) {
     const next = saved.includes(value) ? saved.filter(x => x !== value) : [...saved, value];
@@ -264,7 +270,7 @@ export default function App() {
     );
   }
 
-  const rootNavigation = tab.startsWith('city') || tab === 'map' || tab === 'profile' || tab === 'admin' || tab.startsWith('news:');
+  const rootNavigation = tab.startsWith('city') || tab === 'map' || tab === 'profile' || tab === 'admin' || tab.startsWith('news:')||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix))||['editorial','not-found'].includes(tab);
   const navigationTabs = rootNavigation ? cityTabs : tabs;
   const appName = settings.name || 'إسكندريلا';
   const appSubtitle = settings.subtitle || 'ESKENDRELLA · ALEXANDRIA';
@@ -283,7 +289,8 @@ export default function App() {
         )}
       </AnimatePresence>
       {menuOpen && <SideNavigation active={tab} navigate={navigate} onClose={() => setMenuOpen(false)} />}
-      <header>
+      <a className="ed-skip-link" href="#main-content">تجاوز إلى المحتوى</a>
+      <header className="ed-site-header">
         <div className="header-inner">
           <button
             className="icon-button menu-toggle"
@@ -310,16 +317,14 @@ export default function App() {
             ))}
           </nav>
           <div className="header-actions">
-            <PWAInstallHeaderButton />
+            <button className="icon-button" aria-label="البحث في المجلة" onClick={()=>navigate('city-news')}><Search size={20}/></button>
             <span className="city-label">
               <span /> {settings.cityLabel || 'إسكندرية، مصر'}
             </span>
             <button className="icon-button" aria-label="تغيير المظهر" onClick={() => setDark(!dark)}>
               {dark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className="icon-button notification" aria-label="الإشعارات" onClick={() => setModal('notifications')}>
-              <Bell size={20} />
-            </button>
+
             <button className="avatar" aria-label="حسابي" onClick={() => navigate('profile')}>
               <UserRound size={20} />
             </button>
@@ -331,8 +336,13 @@ export default function App() {
       {settings.maintenance && (
         <div className="offline-bar">إسكندريلا تحت الصيانة حاليًا؛ بعض البيانات ممكن تتأخر في التحديث.</div>
       )}
-      <main onClick={() => focused && setFocused('')}>
+      <main id="main-content" tabIndex={-1} onClick={() => focused && setFocused('')}>
         <div className="content" onClick={e => e.stopPropagation()}>
+          <Suspense fallback={<div className="ed-empty" role="status">جاري فتح الصفحة…</div>}>
+          {tab==='city'&&<MagazineHome navigate={navigate} save={save} saved={saved} settings={settings}/>}
+          {(tab==='city-news'||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix)))&&<MagazineIndex route={tab} navigate={navigate} save={save} saved={saved}/>}
+          {tab==='editorial'&&<EditorialDesk user={user} navigate={navigate} notify={setToast} onLogin={()=>execute(login)}/>}
+          {tab==='not-found'&&<section className="ed-empty"><span className="ed-kicker">٤٠٤ / صفحة غير موجودة</span><h1>الطريق لحكاية أخرى</h1><p>هذا الرابط غير موجود. يمكنك العودة إلى الرئيسية أو البحث في المجلة.</p><button className="ed-button" onClick={()=>navigate('city')}>العودة للرئيسية <ArrowLeft size={18}/></button></section>}
           {tab.startsWith('news:') && (
             <NewsArticlePage
               articleId={tab.replace('news:', '')}
@@ -342,7 +352,7 @@ export default function App() {
               magazineCover={settings.magazineImageUrl || '/brand/magazine.jpeg'}
             />
           )}
-          {tab.startsWith('city') && (
+          {tab.startsWith('city')&&!['city','city-news'].includes(tab) && (
             <CityHub
               tab={tab}
               navigate={navigate}
@@ -473,7 +483,7 @@ export default function App() {
                     <UserRound size={35} />
                   </div>
                   <h2>{user?.displayName || 'نوّرت إسكندريلا'}</h2>
-                  <p>{user ? 'حسابك متصل أونلاين' : 'تقدر تتصفح وتخطط وتفتح لوحة التحكم مباشرة.'}</p>
+                  <p>{user ? 'حسابك متصل أونلاين' : 'القراءة والاكتشاف متاحان دون تسجيل دخول.'}</p>
                   {user ? (
                     <button className="secondary" onClick={() => execute(logout)}>
                       <LogOut size={17} /> تسجيل الخروج
@@ -526,7 +536,7 @@ export default function App() {
                   <h1>
                     لوحة الإدارة<span>.</span>
                   </h1>
-                  <p>أي تعديل أو إضافة بيتنشر أونلاين فوراً على الموقع لكل الزوار.</p>
+                  <p>إدارة المحتوى للمستخدمين المصرح لهم. الحفظ كمسودة يسبق المراجعة والنشر.</p>
                 </div>
               </section>
               <AdminDashboard
@@ -555,7 +565,8 @@ export default function App() {
               />
             </>
           )}
-          <footer>
+          </Suspense>
+          <footer className="ed-site-footer">
             <div className="footer-brand">
               <Logo src={appLogo} />
               <div>
@@ -564,9 +575,9 @@ export default function App() {
               </div>
             </div>
             <span>
-              {settings.footerText || 'معاك في كل مشوار'} <span className="yellow-heart">♥</span>
+              {settings.footerText || 'حكايات وثقافة وتفاصيل تستحق القراءة'} <span className="yellow-heart">♥</span>
             </span>
-            <small>إسكندريلا • متصل ومحدّث أونلاين</small>
+            <small>محتوى بمصادره وتواريخ مراجعته</small><div className="ed-footer-links"><a href="/magazine" onClick={e=>{e.preventDefault();navigate('city-news');}}>المجلة</a><a href="/saved" onClick={e=>{e.preventDefault();navigate('saved');}}>مكتبتي</a><a href="/editorial" onClick={e=>{e.preventDefault();navigate('editorial');}}>مكتب التحرير</a></div>
           </footer>
         </div>
       </main>

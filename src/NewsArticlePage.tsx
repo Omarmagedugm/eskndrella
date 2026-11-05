@@ -1,334 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Clock, 
-  Building, 
-  ExternalLink, 
-  Heart, 
-  Share2, 
-  MapPin, 
-  CheckCircle2, 
-  Newspaper, 
-  ShieldCheck, 
-  Bookmark,
-  CalendarDays
-} from 'lucide-react';
-import { directoryEntries } from './cityDirectory';
-import { subscribePublic, firebaseReady } from './firebase';
-import { safeCover } from './coverImage';
-import { formatCityDate, type CityEntry } from './cityContent';
-import { normalize } from './data';
-import './newsArticle.css';
+import {useEffect,useRef,useState} from 'react';
+import {ArrowLeft,ArrowRight,Bookmark,Check,Copy,ExternalLink,Share2,Type,Newspaper} from 'lucide-react';
+import {useMagazine} from './useMagazine';
+import {ArticleCard} from './ArticleCard';
+import {articleBlocks,articleImage,articleSaved,articleTags,readingMinutes,relatedArticles,safeLink,type Article} from './editorialModel';
+import {formatCityDate} from './cityContent';
+import {routeHref} from './navigation';
 
-interface NewsArticlePageProps {
-  articleId: string;
-  navigate: (tab: string) => void;
-  save?: (text: string) => void;
-  saved?: string[];
-  magazineCover?: string;
+export function InlineText({text}:{text:string}){
+  const parts=text.split(/(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\*\*[^*]+\*\*)/g);
+  return <>{parts.map((part,index)=>{const link=part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);if(link&&safeLink(link[2]))return <a key={index} href={safeLink(link[2])!} target="_blank" rel="noreferrer">{link[1]}<ExternalLink size={13}/></a>;return part.startsWith('**')&&part.endsWith('**')?<strong key={index}>{part.slice(2,-2)}</strong>:part;})}</>;
 }
+function EmbeddedVideo({url}:{url:string}){const [open,setOpen]=useState(false);return open?<iframe className="ed-embed" src={url} title="فيديو مرتبط بالمادة" loading="lazy" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/>:<button className="ed-video-button" onClick={()=>setOpen(true)}>تشغيل الفيديو من YouTube <ExternalLink size={16}/></button>;}
+export function ArticleBody({body}:{body:string}){return <>{articleBlocks(body).map((block,index)=>block.type==='heading'?<h2 id={block.id} key={index}>{block.text}</h2>:block.type==='quote'?<blockquote key={index}><InlineText text={block.text}/></blockquote>:block.type==='image'?<figure key={index}><img src={block.url} alt={block.text} loading="lazy" width="1000" height="650"/>{block.caption&&<figcaption>{block.caption}</figcaption>}</figure>:block.type==='list'?<ul key={index}>{block.text.split('\n').map((line,i)=><li key={i}><InlineText text={line.replace(/^[-*]\s+/,'')}/></li>)}</ul>:block.type==='video'?<EmbeddedVideo key={index} url={block.url!}/>:<p key={index}><InlineText text={block.text}/></p>)}</>;}
 
-export default function NewsArticlePage({
-  articleId,
-  navigate,
-  save,
-  saved = [],
-  magazineCover = '/brand/magazine.jpeg'
-}: NewsArticlePageProps) {
-  const [newsList, setNewsList] = useState<CityEntry[]>(() => directoryEntries('city_news'));
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [articleId]);
-
-  useEffect(() => {
-    if (firebaseReady) {
-      const unsub = subscribePublic('city_news', (remote) => {
-        const merged = directoryEntries('city_news', remote);
-        if (merged && merged.length > 0) {
-          setNewsList(merged);
-        }
-      });
-      return () => unsub();
-    }
-  }, []);
-
-  // Find article by id or normalized name
-  const decodedId = decodeURIComponent(articleId || '');
-  const article = newsList.find(
-    (item) => item.id === decodedId || normalize(item.name) === normalize(decodedId)
-  ) || newsList[0];
-
-  const handleShare = () => {
-    if (!article) return;
-    const url = window.location.href;
-    const shareText = `${article.name}\n\n${article.summary}\n\nعبر إسكندريلا ماجازين:\n${url}`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: article.name,
-        text: shareText,
-        url: url
-      }).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2600);
-    }
-  };
-
-  if (!article) {
-    return (
-      <div className="news-article-page">
-        <div className="news-article-breadcrumbs">
-          <button className="text-button" onClick={() => navigate('city')}>
-            الرئيسية
-          </button>
-          <ChevronSeparator />
-          <button className="text-button" onClick={() => navigate('city-news')}>
-            الأخبار والمجلة
-          </button>
-        </div>
-        <div className="card empty">
-          <Newspaper size={40} />
-          <h2>الخبر غير موجود أو جاري تحميله</h2>
-          <p>تقدر ترجع لقسم الأخبار وتتصفح أحدث أخبار وفعاليات إسكندرية.</p>
-          <button className="primary" onClick={() => navigate('city-news')}>
-            الرجوع لقسم الأخبار <ArrowLeft size={16} />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const isSaved = saved.includes(`خبر: ${article.name}`) || saved.includes(article.name);
-  const coverUrl = safeCover(article.imageUrl) || safeCover(article.innerImageUrl) || magazineCover;
-  const relatedArticles = newsList.filter((item) => item.id !== article.id).slice(0, 3);
-
-  // Split article body into natural paragraphs
-  const rawBody: string = article.body || article.summary || '';
-  const paragraphs: string[] = rawBody
-    .split(/\n\n+/)
-    .map((p: string) => p.trim())
-    .filter(Boolean);
-
-  return (
-    <article className="news-article-page" dir="rtl">
-      {/* Top Breadcrumbs & Back Bar */}
-      <nav className="news-article-top-nav" aria-label="مسار الخبر">
-        <div className="news-article-breadcrumbs">
-          <button className="text-button" onClick={() => navigate('city')}>
-            الرئيسية
-          </button>
-          <ChevronSeparator />
-          <button className="text-button" onClick={() => navigate('city-news')}>
-            المجلة والأخبار
-          </button>
-          <ChevronSeparator />
-          <span className="current-crumb">{article.category || 'خبر'}</span>
-        </div>
-
-        <button 
-          type="button" 
-          className="news-article-back-btn" 
-          onClick={() => navigate('city-news')}
-        >
-          <ArrowRight size={17} />
-          <span>كل الأخبار</span>
-        </button>
-      </nav>
-
-      {/* Main Editorial Header */}
-      <header className="news-article-header">
-        <h1 className="news-article-headline">{article.name}</h1>
-
-        <div className="news-article-meta-badges">
-          <span className="news-badge category">
-            <Newspaper size={13} />
-            {article.category || 'أخبار إسكندرية'}
-          </span>
-
-          {article.region && (
-            <span className="news-badge region">
-              <MapPin size={13} />
-              {article.region}
-            </span>
-          )}
-
-          {article.publishedDate && (
-            <span className="news-badge date">
-              <Clock size={13} />
-              {formatCityDate(article.publishedDate)}
-            </span>
-          )}
-        </div>
-
-        {/* Verification and Source Stamp */}
-        <div className="news-article-source-stamp">
-          <div className="source-info">
-            <div className="source-icon">
-              <ShieldCheck size={20} color="#155570" />
-            </div>
-            <div>
-              <div className="source-title">
-                <b>المصدر المعتمد:</b> {article.sourceName || 'تحرير ومراجعة إسكندريلا'}
-              </div>
-              <div className="source-date">
-                {article.reviewedAt && (
-                  <span>تم التحقق والمراجعة: {formatCityDate(article.reviewedAt)} · </span>
-                )}
-                <span>محتوى صحفي موثّق</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="source-quick-actions">
-            {article.sourceUrl && (
-              <a 
-                href={article.sourceUrl} 
-                target="_blank" 
-                rel="noreferrer"
-                className="source-ext-link"
-                title="افتح المصدر الأصلي للخبر"
-              >
-                <span>رابط المصدر</span>
-                <ExternalLink size={13} />
-              </a>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Media Cover */}
-      <figure className="news-article-hero">
-        <img 
-          src={coverUrl} 
-          alt={article.name} 
-          className="news-hero-img" 
-        />
-        {(article.region || article.sourceName) && (
-          <figcaption className="news-hero-caption">
-            <span>{article.region || 'عروس البحر الأبيض المتوسط'}</span>
-            {article.sourceName && <span>تصوير / تغطية: {article.sourceName}</span>}
-          </figcaption>
-        )}
-      </figure>
-
-      {/* Lead Summary Callout */}
-      {article.summary && (
-        <div className="news-article-lead">
-          <p>{article.summary}</p>
-        </div>
-      )}
-
-      {/* Article Body Content */}
-      <section className="news-article-content">
-        {paragraphs.map((p: string, idx: number) => (
-          <p key={idx} className="news-paragraph">
-            {p}
-          </p>
-        ))}
-
-        {article.innerImageUrl && article.imageUrl && article.innerImageUrl !== article.imageUrl && (
-          <div className="news-inline-gallery">
-            <img 
-              src={safeCover(article.innerImageUrl) || ''} 
-              alt={`${article.name} — لقطة إضافية`} 
-              loading="lazy" 
-            />
-          </div>
-        )}
-      </section>
-
-      {/* Action Bar (Share, Save, Source) */}
-      <section className="news-article-action-bar">
-        {save && (
-          <button 
-            type="button" 
-            className={`news-action-btn ${isSaved ? 'saved' : ''}`}
-            onClick={() => save(`خبر: ${article.name}`)}
-          >
-            <Heart size={18} fill={isSaved ? '#ef4444' : 'none'} color={isSaved ? '#ef4444' : 'currentColor'} />
-            <span>{isSaved ? 'محفوظ في مفضلتي' : 'احفظ الخبر'}</span>
-          </button>
-        )}
-
-        <button 
-          type="button" 
-          className="news-action-btn share-btn"
-          onClick={handleShare}
-        >
-          {copied ? <CheckCircle2 size={18} color="#16a34a" /> : <Share2 size={18} />}
-          <span>{copied ? 'تم نسخ الرابط والملخص!' : 'مشاركة الخبر'}</span>
-        </button>
-
-        {article.sourceUrl && (
-          <a 
-            href={article.sourceUrl} 
-            target="_blank" 
-            rel="noreferrer"
-            className="news-action-btn primary-action"
-          >
-            <span>زيارة موقع المصدر الرسمي</span>
-            <ExternalLink size={16} />
-          </a>
-        )}
-      </section>
-
-      {/* Related News Section */}
-      {relatedArticles.length > 0 && (
-        <section className="news-related-section">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">من إسكندريلا ماجازين</span>
-              <h2>أخبار تهمك في إسكندرية</h2>
-            </div>
-            <button className="text-button" onClick={() => navigate('city-news')}>
-              كل الأخبار <ArrowLeft size={15} />
-            </button>
-          </div>
-
-          <div className="news-related-grid">
-            {relatedArticles.map((item) => {
-              const itemCover = safeCover(item.imageUrl) || safeCover(item.innerImageUrl) || magazineCover;
-              return (
-                <article 
-                  key={item.id} 
-                  className="news-related-card"
-                  onClick={() => navigate('news:' + item.id)}
-                >
-                  <div className="related-img-wrap">
-                    <img src={itemCover} alt={item.name} loading="lazy" />
-                    {item.category && <span className="related-cat-badge">{item.category}</span>}
-                  </div>
-                  <div className="related-card-body">
-                    {item.publishedDate && (
-                      <span className="related-date">
-                        <Clock size={11} /> {formatCityDate(item.publishedDate)}
-                      </span>
-                    )}
-                    <h3 className="related-title">{item.name}</h3>
-                    <p className="related-summary">{item.summary}</p>
-                    <span className="related-cta">
-                      اقرأ الخبر كامل <ArrowLeft size={13} />
-                    </span>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      )}
-    </article>
-  );
-}
-
-function ChevronSeparator() {
-  return (
-    <span className="breadcrumb-separator" aria-hidden="true">
-      ‹
-    </span>
-  );
+export default function NewsArticlePage({articleId,navigate,save,saved=[],previewArticle}:{articleId:string;navigate:(route:string)=>void;save?:(key:string)=>void;saved?:string[];magazineCover?:string;previewArticle?:Article}){
+  const {articles,loading}=useMagazine();
+  const article=previewArticle||articles.find(item=>item.id===articleId);
+  const [message,setMessage]=useState('');const [large,setLarge]=useState(false);const [progress,setProgress]=useState(0);
+  const bodyRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{setMessage('');setProgress(0);},[articleId]);
+  useEffect(()=>{
+    let frame=0;
+    const update=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const el=bodyRef.current;if(!el)return;const rect=el.getBoundingClientRect();const length=rect.height-window.innerHeight*.5;setProgress(Math.round(Math.max(0,Math.min(100,(-rect.top+window.innerHeight*.25)/Math.max(1,length)*100))));});};
+    update();window.addEventListener('scroll',update,{passive:true});window.addEventListener('resize',update);return()=>{cancelAnimationFrame(frame);window.removeEventListener('scroll',update);window.removeEventListener('resize',update);};
+  },[article?.id]);
+  useEffect(()=>{
+    if(!article||previewArticle)return;
+    document.title=article.name+' | إسكندريلا';
+    const setMeta=(name:string,content:string,property=false)=>{let el=document.head.querySelector<HTMLMetaElement>(`meta[${property?'property':'name'}="${name}"]`);if(!el){el=document.createElement('meta');el.setAttribute(property?'property':'name',name);document.head.appendChild(el);}el.content=content;};
+    const url=new URL(routeHref('news:'+article.id),location.origin).href;
+    setMeta('description',article.summary);setMeta('og:title',article.name,true);setMeta('og:description',article.summary,true);setMeta('og:url',url,true);setMeta('og:type','article',true);
+    setMeta('og:image',new URL(articleImage(article)||'/brand/magazine.jpeg',location.origin).href,true);
+    let canonical=document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical);}canonical.href=url;
+    const json=document.createElement('script');json.type='application/ld+json';json.textContent=JSON.stringify({'@context':'https://schema.org','@type':'Article',headline:article.name,description:article.summary,datePublished:article.publishedDate||undefined,dateModified:article.updatedDate||undefined,author:article.authorName?{'@type':'Person',name:article.authorName}:undefined,publisher:{'@type':'Organization',name:'إسكندريلا'},mainEntityOfPage:url});document.head.appendChild(json);
+    return()=>{json.remove();canonical?.remove();};
+  },[article,previewArticle]);
+  if(!article)return <section className="ed-empty" aria-live="polite"><Newspaper size={38}/><p className="ed-kicker">{loading?'جاري البحث عن المادة':'٤٠٤ / صفحة غير موجودة'}</p><h1>{loading?'لحظة، نفتح الحكاية…':'هذه الحكاية غير موجودة'}</h1><p>{loading?'نحاول تحميل أحدث نسخة منشورة.':'قد يكون الرابط قديمًا، أو أن المادة لم تُنشر بعد.'}</p><button className="ed-button" onClick={()=>navigate('city-news')}>تصفّح المجلة <ArrowLeft size={18}/></button></section>;
+  const body=article.body||'';const headings=articleBlocks(body).filter(block=>block.type==='heading');const image=articleImage({...article,imageUrl:article.innerImageUrl||article.imageUrl});const related=relatedArticles(article,articles);
+  const savedKey=saved.includes(`خبر: ${article.name}`)?`خبر: ${article.name}`:saved.includes(article.name)?article.name:`article:${article.id}`;
+  const copy=async()=>{try{await navigator.clipboard.writeText(new URL(routeHref('news:'+article.id),location.origin).href);setMessage('تم نسخ رابط المقال');}catch{setMessage('تعذّر النسخ. يمكنك نسخ الرابط من شريط العنوان.');}};
+  const share=async()=>{try{if(navigator.share)await navigator.share({title:article.name,url:new URL(routeHref('news:'+article.id),location.origin).href});else await copy();}catch(error){if(!(error instanceof Error&&error.name==='AbortError'))setMessage('تعذّرت المشاركة. جرّب نسخ الرابط.');}};
+  return <article className={`ed-article ${large?'ed-large-type':''} ${previewArticle?'ed-is-preview':''}`} dir="rtl">
+    {!previewArticle&&<div className="ed-reading-track" aria-hidden="true"><span style={{width:progress+'%'}}/></div>}
+    <nav className="ed-breadcrumb" aria-label="مسار المقال"><a href="/" onClick={e=>{e.preventDefault();navigate('city');}}>الرئيسية</a><span>/</span><a href="/magazine" onClick={e=>{e.preventDefault();navigate('city-news');}}>المجلة</a><span>/</span><span>{article.category||'من المدينة'}</span></nav>
+    {previewArticle&&<p className="ed-status">معاينة مسودة · لا تظهر للقراء</p>}
+    <div className="ed-article-header"><a className="ed-kicker" href={routeHref('category:'+(article.category||'أخبار المدينة'))} onClick={e=>{e.preventDefault();navigate('category:'+(article.category||'أخبار المدينة'));}}>{article.category||'أخبار المدينة'}</a><h1>{article.name}</h1><p className="ed-article-deck">{article.summary}</p><div className="ed-byline"><div>{article.authorName?<a href={routeHref('author:'+article.authorName)} onClick={e=>{e.preventDefault();navigate('author:'+article.authorName);}}>بقلم <b>{article.authorName}</b></a>:<span>المصدر: <b>{article.sourceName||'غير محدد'}</b></span>}<span className="ed-meta">{article.publishedDate&&<time dateTime={article.publishedDate}>{formatCityDate(article.publishedDate)}</time>}{article.updatedDate&&<time dateTime={article.updatedDate}>تحديث: {formatCityDate(article.updatedDate)}</time>}<span>{readingMinutes(body||article.summary).toLocaleString('ar-EG')} د قراءة</span></span></div><div className="ed-reading-actions"><button className="icon-button" title="حجم النص" aria-label="تكبير نص المقال" aria-pressed={large} onClick={()=>setLarge(!large)}><Type size={19}/></button>{save&&!previewArticle&&<button className="icon-button" aria-label={articleSaved(article,saved)?'إلغاء حفظ المقال':'حفظ المقال'} aria-pressed={articleSaved(article,saved)} onClick={()=>save(savedKey)}><Bookmark size={19} fill={articleSaved(article,saved)?'currentColor':'none'}/></button>}<button className="icon-button" aria-label="نسخ رابط المقال" onClick={copy}><Copy size={18}/></button></div></div></div>
+    {message&&<p className="ed-share-message" role="status"><Check size={16}/>{message}</p>}
+    {image&&<figure className="ed-article-cover"><img src={image} alt={article.imageAlt||article.name} width="1200" height="750" fetchPriority="high"/>{(article.imageCaption||article.imageCredit)&&<figcaption>{article.imageCaption}{article.imageCredit&&<span> — {article.imageCredit}</span>}</figcaption>}</figure>}
+    <div className="ed-reading-layout"><aside className="ed-reading-sidebar"><span className="ed-kicker">في هذه المادة</span>{headings.length>=2?<nav aria-label="فهرس المقال">{headings.map(heading=><a key={heading.id} href={'#'+heading.id}>{heading.text}</a>)}</nav>:<p>{article.region}<br/>من دفتر إسكندريلا</p>}<div className="ed-sidebar-rule"/><button onClick={share}><Share2 size={16}/> مشاركة المادة</button><button onClick={copy}><Copy size={16}/> نسخ الرابط</button></aside><div className="ed-reading-body" ref={bodyRef}>{body&&body.trim()!==article.summary.trim()&&<ArticleBody body={body}/>}{safeLink(article.sourceUrl)&&<div className="ed-source-note"><span className="ed-kicker">للقراءة والتحقق</span><p>هذه المادة مستندة إلى {article.sourceName||'المصدر المرفق'}.{article.reviewedAt?' آخر مراجعة للمصدر: '+formatCityDate(article.reviewedAt)+'.':''}</p><a href={safeLink(article.sourceUrl)!} target="_blank" rel="noreferrer">افتح المادة من مصدرها <ExternalLink size={16}/></a></div>}{articleTags(article).length>0&&<nav className="ed-tags" aria-label="وسوم المقال">{articleTags(article).map(tag=><a key={tag} href={routeHref('tag:'+tag)} onClick={e=>{e.preventDefault();navigate('tag:'+tag);}}>#{tag}</a>)}</nav>}<div className="ed-article-end"><span>نهاية الحكاية، بداية اكتشاف آخر.</span><button className="ed-button" onClick={share}><Share2 size={17}/> شارك المقال</button></div></div></div>
+    {!previewArticle&&related.length>0&&<section className="ed-section ed-related"><div className="ed-section-heading"><div><span className="ed-kicker">خيط لحكاية أخرى</span><h2>على صلة بما قرأت</h2></div></div><div className="ed-card-grid">{related.map((item,index)=><ArticleCard key={item.id} article={item} index={index} navigate={navigate} save={save} saved={saved}/>)}</div></section>}
+    {!previewArticle&&<a className="ed-back-link" href="/magazine" onClick={e=>{e.preventDefault();navigate('city-news');}}><ArrowRight size={18}/> الرجوع إلى المجلة</a>}
+  </article>;
 }

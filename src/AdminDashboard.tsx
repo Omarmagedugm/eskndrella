@@ -26,7 +26,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import { call, syncLocalDraftsToCloud, ADMIN_EMAIL } from './firebase';
+import { call, ADMIN_EMAIL } from './firebase';
 import { sections, emptyRecord, normalizeDraft, seedWorkspace, type Section } from './adminModel';
 import { sportsContent } from './sportsModel';
 import { ClubLogo, registerCustomClubLogos } from './clubLogos';
@@ -426,7 +426,7 @@ function ClubLogosManager({
 }
 
 export default function AdminDashboard({ user, notify }: { user: User | null; notify: (s: string) => void }) {
-  const [role, setRole] = useState('super_admin');
+  const [role, setRole] = useState('');
   const [sectionId, setSectionId] = useState('overview');
   const [rows, setRows] = useState<any[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -460,17 +460,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
       .then((r: any) => {
         if (!cancelled && r?.role) setRole(r.role);
       })
-      .catch(() => {});
-
-    // Automatically push any previous local drafts to cloud on open
-    syncLocalDraftsToCloud()
-      .then(count => {
-        if (!cancelled && count > 0) {
-          notify(`تم رفع ونشر ${count} تعديلات سابقة أونلاين على الموقع بنجاح`);
-          void refresh();
-        }
-      })
-      .catch(() => {});
+      .catch(e => {if(!cancelled)setError(e instanceof Error?e.message:'تعذّر التحقق من الصلاحيات');});
 
     return () => {
       cancelled = true;
@@ -541,7 +531,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
         revision: editor.revision,
         record,
       });
-    }, 'تم حفظ ونشر التعديلات أونلاين لكل الزوار بنجاح');
+    }, canPublish?'تم حفظ السجل ونشره.':'تم حفظ المسودة للمراجعة.');
   }
 
   async function deleteItem(row: any) {
@@ -550,7 +540,8 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
       await call('adminDelete', {
         collection: sectionId,
         id: row.id,
-        reason: 'حذف مباشر من لوحة التحكم',
+        revision: row.revision||1,
+        reason: 'أرشفة من لوحة التحكم',
       });
     }, 'تم حذف السجل أونلاين من الموقع بنجاح');
   }
@@ -617,7 +608,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
           <ShieldCheck size={26} />
           <b>
             مركز التحكم السحابي
-            <small>{user?.email || ADMIN_EMAIL} • نشر أونلاين مباشر</small>
+            <small>{user?.email || 'لم يتم تسجيل الدخول'} • مساحة الإدارة</small>
           </b>
         </div>
         <nav aria-label="أقسام لوحة التحكم">
@@ -757,7 +748,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
                   </button>
                 ))}
                 <p style={{ marginTop: 12 }}>
-                  أنت متصل كمسؤول أونلاين ({ADMIN_EMAIL})؛ أي إضافة أو تعديل أو حذف بيسمّع مباشرة عند كل الزوار.
+                  الحفظ والنشر متاحان فقط حسب صلاحيات حسابك المعتمدة على الخادم.
                 </p>
               </div>
             </div>
@@ -795,7 +786,8 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
                     await call('adminWrite', {
                       collection: 'app_settings',
                       id: 'main',
-                      record: newSettings,
+                      revision:newSettings.revision||0,
+                      record:normalizeDraft(sections.find(s=>s.id==='app_settings')!.fields!,newSettings),
                     });
                   }, 'تم حفظ ترتيب وإعدادات ودجات الرئيسية ونشرها أونلاين بنجاح');
                 }}
@@ -820,7 +812,8 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
                     await call('adminWrite', {
                       collection: 'sports_clubs',
                       id: club.id,
-                      record,
+                      revision:club.revision||0,
+                      record:normalizeDraft(sections.find(s=>s.id==='sports_clubs')!.fields!,record),
                     });
                     registerCustomClubLogos([record]);
                   }, `تم رفع ونشر شعار ${club.name} (PNG شفاف) أونلاين بنجاح!`);
@@ -836,7 +829,8 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
                     await call('adminWrite', {
                       collection: 'sports_clubs',
                       id: club.id,
-                      record,
+                      revision:club.revision||0,
+                      record:normalizeDraft(sections.find(s=>s.id==='sports_clubs')!.fields!,record),
                     });
                     registerCustomClubLogos([record]);
                   }, `تمت استعادة الشعار الفيكتور الافتراضي لـ ${club.name}`);
