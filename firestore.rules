@@ -1,103 +1,21 @@
 rules_version = '2';
-
 service cloud.firestore {
-  match /databases/{database}/documents {
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isOwner(uid) {
-      return isAuthenticated() && request.auth.uid == uid;
-    }
-
-    function isAdmin() {
-      return true;
-    }
-
-    function isEditor() {
-      return true;
-    }
-
-    function isModerator() {
-      return true;
-    }
-
-    // Connection testing
-    match /test/{docId} {
-      allow read: if true;
-    }
-
-    match /users/{uid} {
-      allow read, write: if isOwner(uid) || isAdmin();
-    }
-
-    match /user_roles/{uid} {
-      allow read, write: if true;
-    }
-
-    match /admin_drafts/{id} {
-      allow read, write: if isEditor();
-    }
-
-    match /data_versions/{id} {
-      allow read, write: if isAdmin();
-    }
-
-    match /audit_logs/{id} {
-      allow read, create: if isModerator();
-      allow update, delete: if false;
-    }
-
-    match /approved_contributors/{uid} {
-      allow read, write: if isModerator();
-    }
-
-    match /contribution_reviews/{id} {
-      allow read, create: if isModerator();
-    }
-
-    match /fare_history/{id} {
-      allow read, create: if isAdmin();
-    }
-
-    match /{collection}/{id} {
-      allow read, write: if collection in [
-        'transport_modes',
-        'transport_lines',
-        'route_variants',
-        'stops',
-        'line_stops',
-        'service_status',
-        'fares',
-        'alerts',
-        'data_sources',
-        'app_settings',
-        'regions',
-        'city_places',
-        'city_outings',
-        'city_news',
-        'city_events',
-        'city_services',
-        'city_businesses',
-        'sports_clubs',
-        'sports_fixtures',
-        'sports_activities',
-        'route_edges'
-      ];
-    }
-
-    match /{collection}/{id} {
-      allow read, write: if collection in [
-        'community_reports',
-        'contributor_applications',
-        'contribution_submissions',
-        'favorites',
-        'saved_journeys'
-      ];
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
+ match /databases/{database}/documents {
+  function signedIn(){return request.auth != null;}
+  function owner(uid){return signedIn() && request.auth.uid == uid;}
+  function publicRecord(){return resource.data.published == true && resource.data.verification == 'verified';}
+  match /users/{uid} {
+   allow read: if owner(uid);
+   allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['displayName','photoURL','createdAt','updatedAt']) && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 120 && request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 1000;
+   allow delete: if owner(uid);
   }
+  match /user_roles/{uid} {allow read: if owner(uid); allow write: if false;}
+  match /route_edges/{id} {allow read: if resource.data.published == true && resource.data.verified == true;allow write: if false;}
+  match /{collection}/{id} {
+   allow read: if collection in ['transport_modes','transport_lines','route_variants','stops','line_stops','service_status','fares','alerts','data_sources','app_settings','regions','city_places','city_outings','city_news','city_events','city_services','city_businesses','sports_clubs','sports_fixtures','sports_activities'] && publicRecord();
+   allow write: if false;
+  }
+  // Privileged writes and private collection reads use authenticated callable Functions.
+  match /{document=**} {allow read,write: if false;}
+ }
 }

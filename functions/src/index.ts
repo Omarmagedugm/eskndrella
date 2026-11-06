@@ -1,6 +1,7 @@
+import {getDatabase} from './database.js';
 import {checkRole} from './admin.js';
 import {initializeApp} from 'firebase-admin/app';import {getFirestore,FieldValue,Timestamp} from 'firebase-admin/firestore';import {onCall,HttpsError,CallableRequest} from 'firebase-functions/v2/https';import {z} from 'zod';import {createHash} from 'node:crypto';
-initializeApp();const db=getFirestore();const options={region:'europe-west1',enforceAppCheck:true,maxInstances:10};const stamp=()=>FieldValue.serverTimestamp();
+initializeApp();const db=getDatabase();const options={region:'europe-west1',enforceAppCheck:true,maxInstances:10};const stamp=()=>FieldValue.serverTimestamp();
 function uid(r:CallableRequest){if(!r.auth)throw new HttpsError('unauthenticated','سجّل دخول الأول');return r.auth.uid}async function role(r:CallableRequest,allowed:string[]){return checkRole(r,allowed)}
 function parse<T>(schema:z.ZodType<T>,input:unknown):T{const p=schema.safeParse(input);if(!p.success)throw new HttpsError('invalid-argument','راجع البيانات المطلوبة');return p.data}
 const adminRoles=['admin','super_admin'];const editorRoles=[...adminRoles,'data_editor'];const manage=['transport_lines','stops','fares','alerts'] as const;const text=z.string().trim().min(2).max(180);const reviewCollections=['contribution_submissions','contributor_applications','community_reports'] as const;
@@ -14,3 +15,5 @@ export const moderate=onCall(options,async r=>{await role(r,adminRoles);const p=
 // Approval of a proposal never publishes transportation records.
 export const assignContributor=onCall(options,async r=>{await role(r,adminRoles);const p=parse(z.object({uid:z.string().min(1).max(128),regions:z.array(text).min(1).max(20),suspended:z.boolean()}).strict(),r.data);await db.runTransaction(async tx=>{const apps=await tx.get(db.collection('contributor_applications').where('uid','==',p.uid).where('status','==','approved').limit(1));if(apps.empty)throw new HttpsError('failed-precondition','لازم موافقة يدوية على طلب المساهمة الأول');tx.set(db.collection('approved_contributors').doc(p.uid),{regions:p.regions,suspended:p.suspended,updatedAt:stamp(),editorUid:r.auth!.uid});tx.create(db.collection('audit_logs').doc(),{action:'contributor_permissions',...p,actorUid:r.auth!.uid,createdAt:stamp()})});return{ok:true}});
 export {publicContent,adminOverview,adminSession,adminRecords,adminSave,adminPublish,adminArchive,adminRestore,adminReview,adminRole} from './admin.js';
+
+export {editorialSave,editorialPublish,scheduledArticles} from './editorial.js';

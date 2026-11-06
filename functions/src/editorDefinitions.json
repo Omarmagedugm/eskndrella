@@ -1,0 +1,1084 @@
+{
+  "app_settings": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "subtitle",
+      "type": "text"
+    },
+    {
+      "key": "cityLabel",
+      "type": "text"
+    },
+    {
+      "key": "logoUrl",
+      "type": "image"
+    },
+    {
+      "key": "heroKicker",
+      "type": "text"
+    },
+    {
+      "key": "heroTitle",
+      "type": "text"
+    },
+    {
+      "key": "heroDescription",
+      "type": "textarea"
+    },
+    {
+      "key": "heroImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "heroCaption",
+      "type": "text"
+    },
+    {
+      "key": "slogan",
+      "type": "text"
+    },
+    {
+      "key": "magazineTitle",
+      "type": "text"
+    },
+    {
+      "key": "magazineSubtitle",
+      "type": "text"
+    },
+    {
+      "key": "magazineImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "footerText",
+      "type": "text"
+    },
+    {
+      "key": "notice",
+      "type": "textarea"
+    },
+    {
+      "key": "maintenance",
+      "type": "checkbox"
+    },
+    {
+      "key": "homeWidgetsOrder",
+      "type": "list"
+    },
+    {
+      "key": "showWidgets",
+      "type": "checkbox"
+    },
+    {
+      "key": "showMatchesSlider",
+      "type": "checkbox"
+    },
+    {
+      "key": "showNewsSlider",
+      "type": "checkbox"
+    },
+    {
+      "key": "showSections",
+      "type": "checkbox"
+    },
+    {
+      "key": "showFeatures",
+      "type": "checkbox"
+    },
+    {
+      "key": "showOutings",
+      "type": "checkbox"
+    },
+    {
+      "key": "showSports",
+      "type": "checkbox"
+    },
+    {
+      "key": "showGuides",
+      "type": "checkbox"
+    },
+    {
+      "key": "showFares",
+      "type": "checkbox"
+    },
+    {
+      "key": "contact",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_news": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "category",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "body",
+      "type": "textarea"
+    },
+    {
+      "key": "authorName",
+      "type": "text"
+    },
+    {
+      "key": "authorBio",
+      "type": "textarea"
+    },
+    {
+      "key": "tags",
+      "type": "list"
+    },
+    {
+      "key": "imageAlt",
+      "type": "text"
+    },
+    {
+      "key": "imageCaption",
+      "type": "text"
+    },
+    {
+      "key": "imageCredit",
+      "type": "text"
+    },
+    {
+      "key": "featured",
+      "type": "checkbox"
+    },
+    {
+      "key": "publishedDate",
+      "type": "date"
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_places": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "category",
+      "type": "select",
+      "options": [
+        "landmark",
+        "beach",
+        "restaurant",
+        "cafe",
+        "park",
+        "museum"
+      ]
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "body",
+      "type": "textarea"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "openingHours",
+      "type": "textarea"
+    },
+    {
+      "key": "priceNote",
+      "type": "textarea"
+    },
+    {
+      "key": "lat",
+      "type": "number"
+    },
+    {
+      "key": "lng",
+      "type": "number"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_outings": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "kind",
+      "type": "select",
+      "options": [
+        "culture",
+        "food",
+        "events"
+      ]
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "adultFee",
+      "type": "number"
+    },
+    {
+      "key": "studentFee",
+      "type": "number"
+    },
+    {
+      "key": "family",
+      "type": "checkbox"
+    },
+    {
+      "key": "students",
+      "type": "checkbox"
+    },
+    {
+      "key": "openingHours",
+      "type": "textarea"
+    },
+    {
+      "key": "priceNote",
+      "type": "textarea"
+    },
+    {
+      "key": "venue",
+      "type": "text"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "startsAt",
+      "type": "text"
+    },
+    {
+      "key": "endsAt",
+      "type": "text"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_events": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "category",
+      "type": "text"
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "body",
+      "type": "textarea"
+    },
+    {
+      "key": "startsAt",
+      "type": "text"
+    },
+    {
+      "key": "endsAt",
+      "type": "text"
+    },
+    {
+      "key": "venue",
+      "type": "text"
+    },
+    {
+      "key": "priceNote",
+      "type": "textarea"
+    },
+    {
+      "key": "bookingUrl",
+      "type": "text"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_services": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "category",
+      "type": "text"
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "body",
+      "type": "textarea"
+    },
+    {
+      "key": "phone",
+      "type": "text"
+    },
+    {
+      "key": "website",
+      "type": "text"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "openingHours",
+      "type": "textarea"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "city_businesses": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "category",
+      "type": "text"
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "innerImageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "body",
+      "type": "textarea"
+    },
+    {
+      "key": "phone",
+      "type": "text"
+    },
+    {
+      "key": "address",
+      "type": "textarea"
+    },
+    {
+      "key": "openingHours",
+      "type": "textarea"
+    },
+    {
+      "key": "priceNote",
+      "type": "textarea"
+    },
+    {
+      "key": "website",
+      "type": "text"
+    },
+    {
+      "key": "sourceName",
+      "type": "text"
+    },
+    {
+      "key": "sourceUrl",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "sports_clubs": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "shortName",
+      "type": "text"
+    },
+    {
+      "key": "region",
+      "type": "text"
+    },
+    {
+      "key": "color",
+      "type": "text"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "sports",
+      "type": "list"
+    },
+    {
+      "key": "sourceId",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "sports_fixtures": [
+    {
+      "key": "home",
+      "type": "text"
+    },
+    {
+      "key": "away",
+      "type": "text"
+    },
+    {
+      "key": "competition",
+      "type": "text"
+    },
+    {
+      "key": "sport",
+      "type": "select",
+      "options": [
+        "football",
+        "basketball",
+        "volleyball",
+        "swimming",
+        "racket",
+        "fitness",
+        "running",
+        "multi"
+      ]
+    },
+    {
+      "key": "scheduleStatus",
+      "type": "select",
+      "options": [
+        "listed",
+        "finished",
+        "live",
+        "unconfirmed",
+        "postponed",
+        "cancelled"
+      ]
+    },
+    {
+      "key": "homeScore",
+      "type": "number"
+    },
+    {
+      "key": "awayScore",
+      "type": "number"
+    },
+    {
+      "key": "date",
+      "type": "date"
+    },
+    {
+      "key": "startsAt",
+      "type": "text"
+    },
+    {
+      "key": "venue",
+      "type": "text"
+    },
+    {
+      "key": "round",
+      "type": "text"
+    },
+    {
+      "key": "homeLogo",
+      "type": "image"
+    },
+    {
+      "key": "awayLogo",
+      "type": "image"
+    },
+    {
+      "key": "clubIds",
+      "type": "list"
+    },
+    {
+      "key": "note",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "sports_activities": [
+    {
+      "key": "title",
+      "type": "text"
+    },
+    {
+      "key": "sport",
+      "type": "select",
+      "options": [
+        "football",
+        "basketball",
+        "volleyball",
+        "swimming",
+        "racket",
+        "fitness",
+        "running",
+        "multi"
+      ]
+    },
+    {
+      "key": "kind",
+      "type": "select",
+      "options": [
+        "directory",
+        "event"
+      ]
+    },
+    {
+      "key": "venue",
+      "type": "text"
+    },
+    {
+      "key": "date",
+      "type": "date"
+    },
+    {
+      "key": "imageUrl",
+      "type": "image"
+    },
+    {
+      "key": "summary",
+      "type": "textarea"
+    },
+    {
+      "key": "access",
+      "type": "textarea"
+    },
+    {
+      "key": "actionUrl",
+      "type": "text"
+    },
+    {
+      "key": "clubId",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "transport_lines": [
+    {
+      "key": "lineNumber",
+      "type": "text"
+    },
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "mode",
+      "type": "select",
+      "options": [
+        "micro",
+        "tonaya",
+        "bus",
+        "mini",
+        "blue",
+        "yellow",
+        "train",
+        "metro",
+        "alternative"
+      ]
+    },
+    {
+      "key": "corridor",
+      "type": "select",
+      "options": [
+        "الكورنيش",
+        "شارع أبو قير",
+        "الترام",
+        "المحمودية / قبلي",
+        "وسط البلد",
+        "غرب والعجمي",
+        "العامرية وبرج العرب"
+      ]
+    },
+    {
+      "key": "origin",
+      "type": "text"
+    },
+    {
+      "key": "destination",
+      "type": "text"
+    },
+    {
+      "key": "boarding",
+      "type": "textarea"
+    },
+    {
+      "key": "exit",
+      "type": "textarea"
+    },
+    {
+      "key": "returnBoarding",
+      "type": "textarea"
+    },
+    {
+      "key": "returnExit",
+      "type": "textarea"
+    },
+    {
+      "key": "fare",
+      "type": "number"
+    },
+    {
+      "key": "stops",
+      "type": "list"
+    },
+    {
+      "key": "status",
+      "type": "select",
+      "options": [
+        "active",
+        "suspended",
+        "development",
+        "construction",
+        "planned",
+        "closed",
+        "unknown"
+      ]
+    },
+    {
+      "key": "liveTrackingAvailable",
+      "type": "checkbox"
+    },
+    {
+      "key": "aliases",
+      "type": "list"
+    },
+    {
+      "key": "regionIds",
+      "type": "list"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "stops": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "regionId",
+      "type": "text"
+    },
+    {
+      "key": "aliases",
+      "type": "list"
+    },
+    {
+      "key": "lat",
+      "type": "number"
+    },
+    {
+      "key": "lng",
+      "type": "number"
+    },
+    {
+      "key": "landmark",
+      "type": "textarea"
+    },
+    {
+      "key": "streetSide",
+      "type": "textarea"
+    },
+    {
+      "key": "boarding",
+      "type": "textarea"
+    },
+    {
+      "key": "exit",
+      "type": "textarea"
+    },
+    {
+      "key": "accessibility",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "fares": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "lineId",
+      "type": "text"
+    },
+    {
+      "key": "variantId",
+      "type": "text"
+    },
+    {
+      "key": "type",
+      "type": "select",
+      "options": [
+        "fixed",
+        "distance",
+        "zone"
+      ]
+    },
+    {
+      "key": "amount",
+      "type": "number"
+    },
+    {
+      "key": "effectiveFrom",
+      "type": "date"
+    },
+    {
+      "key": "effectiveTo",
+      "type": "date"
+    },
+    {
+      "key": "rules",
+      "type": "textarea"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "transport_modes": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "color",
+      "type": "text"
+    },
+    {
+      "key": "icon",
+      "type": "select",
+      "options": [
+        "bus",
+        "tram",
+        "train",
+        "car"
+      ]
+    },
+    {
+      "key": "enabled",
+      "type": "checkbox"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "alerts": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "description",
+      "type": "textarea"
+    },
+    {
+      "key": "severity",
+      "type": "select",
+      "options": [
+        "info",
+        "warning",
+        "critical"
+      ]
+    },
+    {
+      "key": "lineIds",
+      "type": "list"
+    },
+    {
+      "key": "active",
+      "type": "checkbox"
+    },
+    {
+      "key": "expiresAt",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "regions": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "parent",
+      "type": "text"
+    },
+    {
+      "key": "aliases",
+      "type": "list"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "data_sources": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "type",
+      "type": "select",
+      "options": [
+        "field_visit",
+        "operator",
+        "community",
+        "document",
+        "other"
+      ]
+    },
+    {
+      "key": "reference",
+      "type": "text"
+    },
+    {
+      "key": "observedAt",
+      "type": "text"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ],
+  "route_variants": [
+    {
+      "key": "name",
+      "type": "text"
+    },
+    {
+      "key": "lineId",
+      "type": "text"
+    },
+    {
+      "key": "direction",
+      "type": "select",
+      "options": [
+        "outbound",
+        "inbound"
+      ]
+    },
+    {
+      "key": "status",
+      "type": "select",
+      "options": [
+        "active",
+        "suspended",
+        "development",
+        "construction",
+        "planned",
+        "closed",
+        "unknown"
+      ]
+    },
+    {
+      "key": "originStopId",
+      "type": "text"
+    },
+    {
+      "key": "destinationStopId",
+      "type": "text"
+    },
+    {
+      "key": "stopIds",
+      "type": "list"
+    },
+    {
+      "key": "boarding",
+      "type": "textarea"
+    },
+    {
+      "key": "exit",
+      "type": "textarea"
+    },
+    {
+      "key": "transferInstructions",
+      "type": "textarea"
+    },
+    {
+      "key": "geometry",
+      "type": "json"
+    },
+    {
+      "key": "segmentMinutes",
+      "type": "json"
+    },
+    {
+      "key": "segmentFares",
+      "type": "json"
+    },
+    {
+      "key": "notes",
+      "type": "textarea"
+    }
+  ]
+}

@@ -485,11 +485,12 @@ export default function TouristMap({ navigate, save, saved = [] }: TouristMapPro
 
       pinEl.innerHTML = `
         <div class="tourist-pin-badge">
-          <span>${place.name}</span>
+          <span></span>
         </div>
         <div class="tourist-pin-pointer"></div>
       `;
 
+      pinEl.querySelector('span')!.textContent=place.name;
       pinEl.addEventListener('click', (e) => {
         e.stopPropagation();
         setSelectedPlace(place);

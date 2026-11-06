@@ -115,14 +115,14 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
   useEffect(() => {
     const localNews = directoryEntries('city_news');
     if (localNews && localNews.length > 0) {
-      setNews(localNews);
+      setNews([...localNews].sort((a,b)=>Number(!!b.featured)-Number(!!a.featured)));
     }
 
     if (firebaseReady) {
       const unsub = subscribePublic('city_news', (remote) => {
         const merged = directoryEntries('city_news', remote);
         if (merged && merged.length > 0) {
-          setNews(merged);
+          setNews([...merged].sort((a,b)=>Number(!!b.featured)-Number(!!a.featured)));
         }
       });
       return () => unsub();

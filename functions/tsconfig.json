@@ -1,1 +1,14 @@
-{"compilerOptions":{"module":"NodeNext","moduleResolution":"NodeNext","target":"ES2022","outDir":"lib","strict":true,"skipLibCheck":true},"include":["src"]}
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "outDir": "lib",
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src"
+  ]
+}

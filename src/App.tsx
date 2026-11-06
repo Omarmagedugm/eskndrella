@@ -1,12 +1,15 @@
+import {useEffect,useState,lazy,Suspense} from 'react';
 import SideNavigation from './SideNavigation';
-import TransportHub from './TransportHub';
-import TouristMap from './TouristMap';
+const TransportHub=lazy(()=>import('./TransportHub'));
+const EditorialDesk=lazy(()=>import('./EditorialDesk'));
+const SavedArticles=lazy(()=>import('./SavedArticles'));
+import {readRoute,routeHref} from './navigation';
+const TouristMap=lazy(()=>import('./TouristMap'));
 import { geography } from './adminModel';
 import CityHub, { cityTabs } from './CityHub';
 import NewsArticlePage from './NewsArticlePage';
-import AdminDashboard from './AdminDashboard';
+const AdminDashboard=lazy(()=>import('./AdminDashboard'));
 import { PWAInstallBanner, PWAInstallHeaderButton } from './PWAInstallBanner';
-import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -43,7 +46,6 @@ import {
   loadPublic,
   subscribeLines,
   subscribePublic,
-  syncLocalDraftsToCloud,
 } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { plan, Edge } from './routing';
@@ -77,7 +79,7 @@ function readSaved() {
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tab, setTab] = useState('city');
+  const [tab,setTab]=useState(()=>readRoute(window.location.pathname));
   const [dark, setDark] = useState(localStorage.getItem('at-dark') === 'true');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -114,8 +116,6 @@ export default function App() {
   });
 
   useEffect(() => {
-    // Automatically migrate any previous local drafts to Firestore online
-    syncLocalDraftsToCloud().catch(() => {});
 
     const unsubSettings = subscribePublic('app_settings', r => {
       const main = r.find(x => x.id === 'main' && !x.archived);
@@ -174,12 +174,16 @@ export default function App() {
     }
   }, [toast]);
 
-  function navigate(id: string) {
+  function navigate(id:string){
+    if(id!==tab)window.history.pushState({route:id},'',routeHref(id));
     setTab(id);
     setResults(false);
     setDemo(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  useEffect(()=>{const back=()=>{setTab(readRoute(location.pathname));setResults(false);setMenuOpen(false);};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
+  useEffect(()=>{if(!tab.startsWith('news:')){document.title='إسكندريلا | إسكندرية بكل تفاصيلها';for(const key of ['og:url','og:type'])document.querySelector(`meta[property="${key}"]`)?.remove();const title=document.querySelector<HTMLMetaElement>('meta[property="og:title"]');if(title)title.content='إسكندريلا | إسكندرية بكل تفاصيلها';}requestAnimationFrame(()=>document.getElementById('main-content')?.focus({preventScroll:true}));},[tab]);
 
   function save(value: string) {
     const next = saved.includes(value) ? saved.filter(x => x !== value) : [...saved, value];
@@ -264,7 +268,7 @@ export default function App() {
     );
   }
 
-  const rootNavigation = tab.startsWith('city') || tab === 'map' || tab === 'profile' || tab === 'admin' || tab.startsWith('news:');
+  const rootNavigation = tab.startsWith('city') || tab === 'map' || tab === 'profile' || tab === 'admin' || tab.startsWith('news:')||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix))||['editorial','not-found'].includes(tab);
   const navigationTabs = rootNavigation ? cityTabs : tabs;
   const appName = settings.name || 'إسكندريلا';
   const appSubtitle = settings.subtitle || 'ESKENDRELLA · ALEXANDRIA';
@@ -283,6 +287,7 @@ export default function App() {
         )}
       </AnimatePresence>
       {menuOpen && <SideNavigation active={tab} navigate={navigate} onClose={() => setMenuOpen(false)} />}
+      <a className="magazine-skip-link" href="#main-content">تجاوز إلى المحتوى</a>
       <header>
         <div className="header-inner">
           <button
@@ -331,8 +336,11 @@ export default function App() {
       {settings.maintenance && (
         <div className="offline-bar">إسكندريلا تحت الصيانة حاليًا؛ بعض البيانات ممكن تتأخر في التحديث.</div>
       )}
-      <main onClick={() => focused && setFocused('')}>
+      <main id="main-content" tabIndex={-1} onClick={() => focused && setFocused('')}>
         <div className="content" onClick={e => e.stopPropagation()}>
+          <Suspense fallback={<div className="card empty" role="status">جاري فتح الصفحة…</div>}>
+          {tab==='editorial'&&<EditorialDesk user={user} navigate={navigate} notify={setToast} onLogin={()=>execute(login)}/>}
+          {tab==='not-found'&&<section className="card empty"><span className="eyebrow">٤٠٤ / صفحة غير موجودة</span><h1>الرابط غير موجود</h1><p>يمكنك العودة إلى الرئيسية أو البحث في المجلة.</p><button className="primary" onClick={()=>navigate('city')}>العودة للرئيسية <ArrowLeft size={18}/></button></section>}
           {tab.startsWith('news:') && (
             <NewsArticlePage
               articleId={tab.replace('news:', '')}
@@ -342,9 +350,10 @@ export default function App() {
               magazineCover={settings.magazineImageUrl || '/brand/magazine.jpeg'}
             />
           )}
-          {tab.startsWith('city') && (
+          {(tab.startsWith('city')||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix))) && (
             <CityHub
-              tab={tab}
+              tab={tab.startsWith('city')?tab:'city-news'}
+              archiveRoute={tab}
               navigate={navigate}
               save={save}
               slogan={settings.slogan}
@@ -404,9 +413,10 @@ export default function App() {
                   <p>المشاوير والأماكن والخطوط المفضلة اللي حفظتها عشان ترجع لها بسرعة.</p>
                 </div>
               </section>
-              <div className="card">
+              <SavedArticles saved={saved} save={save} navigate={navigate}/>
+              {(saved.some(s=>!s.startsWith('article:'))||saved.length===0)&&<div className="card">
                 {saved.length ? (
-                  saved.map(s => (
+                  saved.filter(s=>!s.startsWith('article:')).map(s => (
                     <div className="saved-row" key={s}>
                       <Bookmark />
                       <div>
@@ -426,7 +436,7 @@ export default function App() {
                                 .split(' ← ');
                               setFrom(pair[0]);
                               setTo(pair[1]);
-                              setTab('home');
+                              navigate('home');
                               setDemo(false);
                               setComputed(null);
                               setResults(true);
@@ -453,7 +463,7 @@ export default function App() {
                     </button>
                   </div>
                 )}
-              </div>
+              </div>}
             </>
           )}
           {tab === 'profile' && (
@@ -473,7 +483,7 @@ export default function App() {
                     <UserRound size={35} />
                   </div>
                   <h2>{user?.displayName || 'نوّرت إسكندريلا'}</h2>
-                  <p>{user ? 'حسابك متصل أونلاين' : 'تقدر تتصفح وتخطط وتفتح لوحة التحكم مباشرة.'}</p>
+                  <p>{user ? 'حسابك متصل أونلاين' : 'القراءة والاكتشاف متاحان دون تسجيل دخول.'}</p>
                   {user ? (
                     <button className="secondary" onClick={() => execute(logout)}>
                       <LogOut size={17} /> تسجيل الخروج
@@ -526,7 +536,7 @@ export default function App() {
                   <h1>
                     لوحة الإدارة<span>.</span>
                   </h1>
-                  <p>أي تعديل أو إضافة بيتنشر أونلاين فوراً على الموقع لكل الزوار.</p>
+                  <p>إدارة المحتوى للمستخدمين المصرح لهم. الحفظ كمسودة يسبق المراجعة والنشر.</p>
                 </div>
               </section>
               <AdminDashboard
@@ -555,6 +565,7 @@ export default function App() {
               />
             </>
           )}
+          </Suspense>
           <footer>
             <div className="footer-brand">
               <Logo src={appLogo} />
@@ -566,11 +577,11 @@ export default function App() {
             <span>
               {settings.footerText || 'معاك في كل مشوار'} <span className="yellow-heart">♥</span>
             </span>
-            <small>إسكندريلا • متصل ومحدّث أونلاين</small>
+            <small>محتوى بمصادره وتواريخ مراجعته</small><button className="text-button" onClick={()=>navigate('editorial')}>مكتب التحرير</button>
           </footer>
         </div>
       </main>
-      <PWAInstallBanner />
+      {tab==='city'&&<PWAInstallBanner />}
       <nav className="bottom-nav">
         {navigationTabs.map(t => (
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => navigate(t.id)}>
@@ -714,7 +725,7 @@ export default function App() {
                     onClick={() => {
                       setTo(availablePlaces.find(p => p.id === selected)?.name || '');
                       setModal('');
-                      setTab('home');
+                      navigate('home');
                     }}
                   >
                     اختارها كوجهة <ArrowLeft size={17} />

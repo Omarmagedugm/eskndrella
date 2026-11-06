@@ -383,6 +383,7 @@ export function PWAInstallHeaderButton() {
         type="button"
         onClick={handleClick}
         title="تثبيت تطبيق إسكندريلا على جهازك"
+        className="pwa-header-install" aria-label="تثبيت التطبيق"
         style={{
           background: 'rgba(240, 198, 74, 0.15)',
           color: 'var(--accent-text, #F0C64A)',
