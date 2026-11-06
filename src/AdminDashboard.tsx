@@ -456,6 +456,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
 
   useEffect(() => {
     let cancelled = false;
+    setRole('');
     call('adminSession', {})
       .then((r: any) => {
         if (!cancelled && r?.role) setRole(r.role);
@@ -600,6 +601,7 @@ export default function AdminDashboard({ user, notify }: { user: User | null; no
   );
 
   const counts = stats;
+  if(!role)return <section className="card empty"><ShieldCheck size={36}/><h2>إدارة المحتوى تحتاج حسابًا مصرحًا له</h2><p>{error||'جارٍ التحقق من صلاحيات حسابك. سجل دخولك من صفحة حسابي أولًا.'}</p></section>;
 
   return (
     <div className="admin-shell">

@@ -11,6 +11,7 @@ import {useEffect,useState} from 'react';
 import {ArrowLeft,MapPin,Search,BusFront,Compass,Newspaper,Store,Heart,ExternalLink,X,Phone,ShieldCheck,Trophy} from 'lucide-react';
 import {subscribePublic,firebaseReady} from './firebase';
 import {normalize} from './data';
+import {articleTags} from './editorialModel';
 
 export const cityTabs=[
   {id:'city',label:'الرئيسية',icon:Compass},
@@ -22,12 +23,12 @@ export const cityTabs=[
 ];
 
 const groups=[
-  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'فسحة على قد جيبك، ومع اللي تحبهم',icon:BeachUmbrella,color:'#247887'},
-  {id:'map',title:'خريطة المعالم السياحية',subtitle:'استكشف متاحف وقلاع وقصور وشواطئ المدينة',icon:MapPin,color:'#bc8523'},
-  {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك، وأنشطة تلعبها',icon:Trophy,color:'#438d77'},
-  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'حكايات إسكندرية، واللي بيحصل فيها',icon:Newspaper,color:'#d97706'},
-  {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للي تحتاجه حواليك',icon:Store,color:'#79835a'},
-  {id:'home',title:'مواصلات إسكندرية',subtitle:'من أي حتة لأي حتة في إسكندرية',icon:BusFront,color:'#146486'}
+  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'أماكن فسح وترفيه بالمدينة',icon:BeachUmbrella,color:'#247887'},
+  {id:'map',title:'خريطة المعالم',subtitle:'أهم معالم ومتاحف وقصور المدينة',icon:MapPin,color:'#bc8523'},
+  {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك وفعالياتها',icon:Trophy,color:'#438d77'},
+  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'أحدث مستجدات وحكايات المدينة',icon:Newspaper,color:'#d97706'},
+  {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للخدمات والمحلات',icon:Store,color:'#79835a'},
+  {id:'home',title:'مواصلات إسكندرية',subtitle:'خطوط ومحطات إسكندرية',icon:BusFront,color:'#146486'}
 ];
 
 const collectionFor:Record<string,string>={
@@ -55,7 +56,8 @@ export default function CityHub({
   save,
   slogan,
   saved=[],
-  settings={}
+  settings={},
+  archiveRoute=tab
 }:{
   tab:string;
   navigate:(t:string)=>void;
@@ -63,16 +65,21 @@ export default function CityHub({
   slogan?:string;
   saved?:string[];
   settings?:Record<string,any>;
+  archiveRoute?:string;
 }){
   const [items,setItems]=useState<any[]>([]);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
   const [q,setQ]=useState('');
+  const [homeQuery,setHomeQuery]=useState('');
+  const [category,setCategory]=useState('');
+  const [sort,setSort]=useState('newest');
   const [region,setRegion]=useState('all');
   const [selected,setSelected]=useState<any>(null);
 
   useEffect(()=>{
-    setQ('');
+    setQ(archiveRoute.startsWith('search:')?archiveRoute.slice(7):'');
+    setCategory(archiveRoute.startsWith('category:')?archiveRoute.slice(9):'');
     setRegion('all');
     setItems([]);
     setSelected(null);
@@ -85,17 +92,19 @@ export default function CityHub({
       const unsub = subscribePublic(collection, r => {
         setItems(directoryEntries(collection, r));
         setLoading(false);
-      });
+      },()=>{setLoading(false);setError('تعذّر تحديث المحتوى. نعرض النسخة المحفوظة بمصادرها.');});
       return () => unsub();
     }else{
       setLoading(false);
     }
-  },[tab]);
+  },[tab,archiveRoute]);
 
+  const tag=archiveRoute.startsWith('tag:')?archiveRoute.slice(4):'';
+  const author=archiveRoute.startsWith('author:')?archiveRoute.slice(7):'';
   const filtered=items.filter(i=>
-    (region==='all'||i.region===region)&&
-    normalize([i.name,i.summary,i.region,i.category].join(' ')).includes(normalize(q))
-  );
+    (region==='all'||i.region===region)&&(!category||i.category===category)&&(!tag||articleTags(i).includes(tag))&&(!author||i.authorName===author)&&
+    normalize([i.name,i.summary,i.body,i.region,i.category,i.authorName,...articleTags(i)].join(' ')).includes(normalize(q))
+  ).sort((a,b)=>tab==='city-news'?(sort==='oldest'?String(a.publishedDate||'').localeCompare(String(b.publishedDate||'')):String(b.publishedDate||'').localeCompare(String(a.publishedDate||''))):0);
 
   if(tab==='city-sports')return <SportsHub navigate={navigate} save={save} saved={saved}/>;
   if(tab==='city-outings')return <Outings navigate={navigate} save={save}/>;
@@ -134,6 +143,7 @@ export default function CityHub({
         </div>
       </section>
 
+      <form className="city-search-row magazine-home-search" onSubmit={e=>{e.preventDefault();navigate(homeQuery.trim()?'search:'+homeQuery.trim():'city-news');}}><label className="catalog-search"><Search size={19}/><input aria-label="البحث في المجلة" placeholder="ابحث عن حكاية أو موضوع في المجلة…" value={homeQuery} onChange={e=>setHomeQuery(e.target.value)}/></label><button className="secondary" type="submit">ابحث في المجلة <ArrowLeft size={17}/></button></form>
       {/* Dynamic Ordered Home Widgets */}
       {(() => {
         const defaultWidgetsOrder = ['widgets', 'matches', 'news', 'sections', 'features'];
@@ -247,7 +257,7 @@ export default function CityHub({
       <div className="page-intro">
         <div>
           <span className="eyebrow">كل حتة ليها حكاية</span>
-          <h1>{title}</h1>
+          <h1>{tag?'موضوع: '+tag:author?'مقالات '+author:title}</h1>
           <p>معلومة واضحة، ومصدر تقدر ترجع له.</p>
         </div>
         {tab==='city-news'&&<img className="magazine-wordmark" src={magazineCover} alt="Eskendrella Magazine"/>}
@@ -273,7 +283,7 @@ export default function CityHub({
       <div className="city-search-row">
         <label className="catalog-search">
           <Search size={19}/>
-          <input aria-label="ابحث في دليل إسكندريلا" placeholder="دور بالاسم أو المنطقة…" value={q} onChange={e=>setQ(e.target.value)}/>
+          <input aria-label="ابحث في دليل إسكندريلا" placeholder={tab==='city-news'?'ابحث في العنوان أو النص أو المنطقة…':'دور بالاسم أو المنطقة…'} value={q} onChange={e=>setQ(e.target.value)}/>
         </label>
         <select aria-label="فلتر المنطقة" value={region} onChange={e=>setRegion(e.target.value)}>
           <option value="all">كل المناطق</option>
@@ -281,6 +291,7 @@ export default function CityHub({
         </select>
       </div>
 
+      {tab==='city-news'&&<div className="city-search-row magazine-archive-filters"><select aria-label="تصفية حسب القسم" value={category} onChange={e=>setCategory(e.target.value)}><option value="">كل الأقسام</option>{[...new Set(items.map(i=>i.category))].filter(Boolean).map(c=><option key={c}>{c}</option>)}</select><select aria-label="ترتيب المقالات" value={sort} onChange={e=>setSort(e.target.value)}><option value="newest">الأحدث أولًا</option><option value="oldest">الأقدم أولًا</option></select></div>}
       {error&&<div className="warning" role="alert">{error}</div>}
 
       {loading&&items.length===0?(
@@ -321,6 +332,7 @@ export default function CityHub({
           <Compass size={42}/>
           <h2>{items.length?'مفيش نتيجة بالبحث ده':'بنجهز دليل يستاهل إسكندرية'}</h2>
           <p>{items.length?'جرّب اسم أو منطقة تانية.':'مفيش محتوى منشور في القسم ده لسه. المحتوى بيظهر بعد إضافته ومراجعته من لوحة التحكم.'}</p>
+          {(q||category||region!=='all'||tag||author)&&<button className="primary" onClick={()=>{setQ('');setCategory('');setRegion('all');if(tag||author)navigate('city-news');}}>مسح الفلاتر</button>}
           <button className="secondary" onClick={()=>navigate('home')}>اكتشف قسم المواصلات <ArrowLeft size={17}/></button>
         </div>
       )}

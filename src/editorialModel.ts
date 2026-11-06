@@ -33,3 +33,10 @@ export function relatedArticles(article:Article,items:Article[]):Article[] {
 }
 export function articleSaved(item:Article,saved:string[]):boolean{return saved.includes(`article:${item.id}`)||saved.includes(`خبر: ${item.name}`)||saved.includes(item.name);}
 export function articleImage(item:Article):string|null {const cover=safeCover(item.imageUrl)||safeCover(item.innerImageUrl);return cover&&!['/brand/magazine.jpeg','/brand/eskendrella.png'].includes(cover)?cover:null;}
+export function cairoDateTimeToISO(value:string):string {
+ const match=value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);if(!match)throw Error('موعد النشر غير صالح.');
+ const [,year,month,day,hour,minute]=match;const utc=Date.UTC(+year,+month-1,+day,+hour,+minute);
+ const formatter=new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Cairo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ const matches=[2,3].map(offset=>new Date(utc-offset*3600000)).filter(date=>{const parts=formatter.formatToParts(date);const part=(type:string)=>parts.find(item=>item.type===type)?.value;return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`===value;});
+ if(matches.length!==1)throw Error('هذا الموعد يتزامن مع تغيير التوقيت الصيفي. اختَر ساعة أخرى.');return matches[0].toISOString();
+}

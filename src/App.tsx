@@ -1,8 +1,8 @@
+import {useEffect,useState,lazy,Suspense} from 'react';
 import SideNavigation from './SideNavigation';
 const TransportHub=lazy(()=>import('./TransportHub'));
-const MagazineHome=lazy(()=>import('./MagazineHome'));
-const MagazineIndex=lazy(()=>import('./MagazineIndex'));
 const EditorialDesk=lazy(()=>import('./EditorialDesk'));
+const SavedArticles=lazy(()=>import('./SavedArticles'));
 import {readRoute,routeHref} from './navigation';
 const TouristMap=lazy(()=>import('./TouristMap'));
 import { geography } from './adminModel';
@@ -10,7 +10,6 @@ import CityHub, { cityTabs } from './CityHub';
 import NewsArticlePage from './NewsArticlePage';
 const AdminDashboard=lazy(()=>import('./AdminDashboard'));
 import { PWAInstallBanner, PWAInstallHeaderButton } from './PWAInstallBanner';
-import {useEffect,useState,lazy,Suspense} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -33,7 +32,6 @@ import {
   Info,
   ArrowUpLeft,
   ExternalLink,
-  Search,
 } from 'lucide-react';
 import { places, modes, statuses, normalize } from './data';
 import {
@@ -185,7 +183,7 @@ export default function App() {
   }
 
   useEffect(()=>{const back=()=>{setTab(readRoute(location.pathname));setResults(false);setMenuOpen(false);};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
-  useEffect(()=>{if(!tab.startsWith('news:')){document.title='إسكندريلا | مجلة من قلب المدينة';const description='حكايات وثقافة وأخبار ودليل إسكندرية، بمصادرها وتواريخها.';for(const key of ['description','og:description']){const meta=document.querySelector<HTMLMetaElement>(key==='description'?'meta[name=description]':'meta[property="og:description"]');if(meta)meta.content=description;}for(const key of ['og:url','og:image','og:type'])document.querySelector(`meta[property="${key}"]`)?.remove();const title=document.querySelector<HTMLMetaElement>('meta[property="og:title"]');if(title)title.content='إسكندريلا | مجلة من قلب المدينة';}requestAnimationFrame(()=>document.getElementById('main-content')?.focus({preventScroll:true}));},[tab]);
+  useEffect(()=>{if(!tab.startsWith('news:')){document.title='إسكندريلا | إسكندرية بكل تفاصيلها';for(const key of ['og:url','og:type'])document.querySelector(`meta[property="${key}"]`)?.remove();const title=document.querySelector<HTMLMetaElement>('meta[property="og:title"]');if(title)title.content='إسكندريلا | إسكندرية بكل تفاصيلها';}requestAnimationFrame(()=>document.getElementById('main-content')?.focus({preventScroll:true}));},[tab]);
 
   function save(value: string) {
     const next = saved.includes(value) ? saved.filter(x => x !== value) : [...saved, value];
@@ -289,8 +287,8 @@ export default function App() {
         )}
       </AnimatePresence>
       {menuOpen && <SideNavigation active={tab} navigate={navigate} onClose={() => setMenuOpen(false)} />}
-      <a className="ed-skip-link" href="#main-content">تجاوز إلى المحتوى</a>
-      <header className="ed-site-header">
+      <a className="magazine-skip-link" href="#main-content">تجاوز إلى المحتوى</a>
+      <header>
         <div className="header-inner">
           <button
             className="icon-button menu-toggle"
@@ -317,14 +315,16 @@ export default function App() {
             ))}
           </nav>
           <div className="header-actions">
-            <button className="icon-button" aria-label="البحث في المجلة" onClick={()=>navigate('city-news')}><Search size={20}/></button>
+            <PWAInstallHeaderButton />
             <span className="city-label">
               <span /> {settings.cityLabel || 'إسكندرية، مصر'}
             </span>
             <button className="icon-button" aria-label="تغيير المظهر" onClick={() => setDark(!dark)}>
               {dark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-
+            <button className="icon-button notification" aria-label="الإشعارات" onClick={() => setModal('notifications')}>
+              <Bell size={20} />
+            </button>
             <button className="avatar" aria-label="حسابي" onClick={() => navigate('profile')}>
               <UserRound size={20} />
             </button>
@@ -338,11 +338,9 @@ export default function App() {
       )}
       <main id="main-content" tabIndex={-1} onClick={() => focused && setFocused('')}>
         <div className="content" onClick={e => e.stopPropagation()}>
-          <Suspense fallback={<div className="ed-empty" role="status">جاري فتح الصفحة…</div>}>
-          {tab==='city'&&<MagazineHome navigate={navigate} save={save} saved={saved} settings={settings}/>}
-          {(tab==='city-news'||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix)))&&<MagazineIndex route={tab} navigate={navigate} save={save} saved={saved}/>}
+          <Suspense fallback={<div className="card empty" role="status">جاري فتح الصفحة…</div>}>
           {tab==='editorial'&&<EditorialDesk user={user} navigate={navigate} notify={setToast} onLogin={()=>execute(login)}/>}
-          {tab==='not-found'&&<section className="ed-empty"><span className="ed-kicker">٤٠٤ / صفحة غير موجودة</span><h1>الطريق لحكاية أخرى</h1><p>هذا الرابط غير موجود. يمكنك العودة إلى الرئيسية أو البحث في المجلة.</p><button className="ed-button" onClick={()=>navigate('city')}>العودة للرئيسية <ArrowLeft size={18}/></button></section>}
+          {tab==='not-found'&&<section className="card empty"><span className="eyebrow">٤٠٤ / صفحة غير موجودة</span><h1>الرابط غير موجود</h1><p>يمكنك العودة إلى الرئيسية أو البحث في المجلة.</p><button className="primary" onClick={()=>navigate('city')}>العودة للرئيسية <ArrowLeft size={18}/></button></section>}
           {tab.startsWith('news:') && (
             <NewsArticlePage
               articleId={tab.replace('news:', '')}
@@ -352,9 +350,10 @@ export default function App() {
               magazineCover={settings.magazineImageUrl || '/brand/magazine.jpeg'}
             />
           )}
-          {tab.startsWith('city')&&!['city','city-news'].includes(tab) && (
+          {(tab.startsWith('city')||['tag:','author:','category:','search:'].some(prefix=>tab.startsWith(prefix))) && (
             <CityHub
-              tab={tab}
+              tab={tab.startsWith('city')?tab:'city-news'}
+              archiveRoute={tab}
               navigate={navigate}
               save={save}
               slogan={settings.slogan}
@@ -414,9 +413,10 @@ export default function App() {
                   <p>المشاوير والأماكن والخطوط المفضلة اللي حفظتها عشان ترجع لها بسرعة.</p>
                 </div>
               </section>
-              <div className="card">
+              <SavedArticles saved={saved} save={save} navigate={navigate}/>
+              {(saved.some(s=>!s.startsWith('article:'))||saved.length===0)&&<div className="card">
                 {saved.length ? (
-                  saved.map(s => (
+                  saved.filter(s=>!s.startsWith('article:')).map(s => (
                     <div className="saved-row" key={s}>
                       <Bookmark />
                       <div>
@@ -436,7 +436,7 @@ export default function App() {
                                 .split(' ← ');
                               setFrom(pair[0]);
                               setTo(pair[1]);
-                              setTab('home');
+                              navigate('home');
                               setDemo(false);
                               setComputed(null);
                               setResults(true);
@@ -463,7 +463,7 @@ export default function App() {
                     </button>
                   </div>
                 )}
-              </div>
+              </div>}
             </>
           )}
           {tab === 'profile' && (
@@ -566,7 +566,7 @@ export default function App() {
             </>
           )}
           </Suspense>
-          <footer className="ed-site-footer">
+          <footer>
             <div className="footer-brand">
               <Logo src={appLogo} />
               <div>
@@ -575,13 +575,13 @@ export default function App() {
               </div>
             </div>
             <span>
-              {settings.footerText || 'حكايات وثقافة وتفاصيل تستحق القراءة'} <span className="yellow-heart">♥</span>
+              {settings.footerText || 'معاك في كل مشوار'} <span className="yellow-heart">♥</span>
             </span>
-            <small>محتوى بمصادره وتواريخ مراجعته</small><div className="ed-footer-links"><a href="/magazine" onClick={e=>{e.preventDefault();navigate('city-news');}}>المجلة</a><a href="/saved" onClick={e=>{e.preventDefault();navigate('saved');}}>مكتبتي</a><a href="/editorial" onClick={e=>{e.preventDefault();navigate('editorial');}}>مكتب التحرير</a></div>
+            <small>محتوى بمصادره وتواريخ مراجعته</small><button className="text-button" onClick={()=>navigate('editorial')}>مكتب التحرير</button>
           </footer>
         </div>
       </main>
-      <PWAInstallBanner />
+      {tab==='city'&&<PWAInstallBanner />}
       <nav className="bottom-nav">
         {navigationTabs.map(t => (
           <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => navigate(t.id)}>
@@ -725,7 +725,7 @@ export default function App() {
                     onClick={() => {
                       setTo(availablePlaces.find(p => p.id === selected)?.name || '');
                       setModal('');
-                      setTab('home');
+                      navigate('home');
                     }}
                   >
                     اختارها كوجهة <ArrowLeft size={17} />

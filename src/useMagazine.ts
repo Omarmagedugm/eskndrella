@@ -7,7 +7,9 @@ export function useMagazine(){
   const [error,setError]=useState('');
   useEffect(()=>{
     if(!firebaseReady)return;
-    return subscribePublic('city_news',items=>{setArticles(magazineArticles(items));setLoading(false);setError('');},()=>{setLoading(false);setError('تعذّر تحديث المحتوى. يمكنك قراءة النسخة التحريرية المحفوظة.');});
+    const timer=setTimeout(()=>{setLoading(false);setError('تحديث المحتوى يستغرق وقتًا أطول. نعرض النسخة المحفوظة.');},12000);
+    const unsubscribe=subscribePublic('city_news',items=>{clearTimeout(timer);setArticles(magazineArticles(items));setLoading(false);setError('');},()=>{clearTimeout(timer);setLoading(false);setError('تعذّر تحديث المحتوى. يمكنك قراءة النسخة التحريرية المحفوظة.');});
+    return()=>{clearTimeout(timer);unsubscribe();};
   },[]);
   return {articles,loading,error};
 }

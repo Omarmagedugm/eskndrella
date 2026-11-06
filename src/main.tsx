@@ -32,4 +32,4 @@ if ('serviceWorker' in navigator) {
 }
 
 
-import './editorial.css';
+import './magazineEnhancements.css';

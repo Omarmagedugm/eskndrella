@@ -81,7 +81,9 @@ function toOuting(raw: any): Outing {
   };
 }
 
-export function outingCatalog(remote: any[] = [], now = Date.now()): Outing[] {
+export function outingCatalog(input: any[] | number = [], now = Date.now()): Outing[] {
+  const remote=Array.isArray(input)?input:[];
+  if(typeof input==='number')now=input;
   const remoteIds = new Set(remote.map(item => item.id));
   const defaults = defaultOutingRecords().filter(item => !remoteIds.has(item.id));
   const merged = [

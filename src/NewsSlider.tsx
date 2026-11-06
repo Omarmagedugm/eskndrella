@@ -115,14 +115,14 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
   useEffect(() => {
     const localNews = directoryEntries('city_news');
     if (localNews && localNews.length > 0) {
-      setNews(localNews);
+      setNews([...localNews].sort((a,b)=>Number(!!b.featured)-Number(!!a.featured)));
     }
 
     if (firebaseReady) {
       const unsub = subscribePublic('city_news', (remote) => {
         const merged = directoryEntries('city_news', remote);
         if (merged && merged.length > 0) {
-          setNews(merged);
+          setNews([...merged].sort((a,b)=>Number(!!b.featured)-Number(!!a.featured)));
         }
       });
       return () => unsub();
@@ -258,8 +258,28 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
           }}
           aria-label={`اقرأ الخبر: ${currentItem.name}`}
         >
-          {/* Content side */}
+          {/* Visual side on top */}
+          <div className="esk-news-slide-visual">
+            <img 
+              src={coverUrl} 
+              alt={currentItem.name} 
+              className="esk-news-slide-img" 
+              loading="lazy" 
+            />
+            <div className="esk-news-visual-overlay">
+              <span className="esk-news-visual-caption">
+                {currentItem.region || 'عروس البحر الأبيض'}
+              </span>
+            </div>
+          </div>
+
+          {/* Content side below image */}
           <div className="esk-news-slide-content">
+            <div>
+              <h3 className="esk-news-slide-headline">{currentItem.name}</h3>
+              <p className="esk-news-slide-summary">{currentItem.summary}</p>
+            </div>
+
             <div className="esk-news-badge-row">
               <span className="esk-news-category-badge">
                 <Newspaper size={13} />
@@ -281,11 +301,6 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
               )}
             </div>
 
-            <div>
-              <h3 className="esk-news-slide-headline">{currentItem.name}</h3>
-              <p className="esk-news-slide-summary">{currentItem.summary}</p>
-            </div>
-
             <div className="esk-news-slide-footer">
               <span className="esk-news-source-tag">
                 <Building size={14} />
@@ -293,22 +308,7 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
               </span>
 
               <span className="esk-news-read-cta">
-                اقرأ الخبر في صفحة كاملة <ArrowLeft size={15} />
-              </span>
-            </div>
-          </div>
-
-          {/* Visual side */}
-          <div className="esk-news-slide-visual">
-            <img 
-              src={coverUrl} 
-              alt={currentItem.name} 
-              className="esk-news-slide-img" 
-              loading="lazy" 
-            />
-            <div className="esk-news-visual-overlay">
-              <span className="esk-news-visual-caption">
-                {currentItem.region || 'عروس البحر الأبيض'}
+                اقرأ الخبر <ArrowLeft size={15} />
               </span>
             </div>
           </div>

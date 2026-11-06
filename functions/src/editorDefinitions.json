@@ -139,6 +139,34 @@
       "type": "textarea"
     },
     {
+      "key": "authorName",
+      "type": "text"
+    },
+    {
+      "key": "authorBio",
+      "type": "textarea"
+    },
+    {
+      "key": "tags",
+      "type": "list"
+    },
+    {
+      "key": "imageAlt",
+      "type": "text"
+    },
+    {
+      "key": "imageCaption",
+      "type": "text"
+    },
+    {
+      "key": "imageCredit",
+      "type": "text"
+    },
+    {
+      "key": "featured",
+      "type": "checkbox"
+    },
+    {
       "key": "publishedDate",
       "type": "date"
     },
