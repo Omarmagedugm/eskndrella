@@ -113,7 +113,6 @@ export default function CityHub({
     <div className="city-home">
       <section className="city-hero">
         <div className="city-hero-copy">
-          <span className="city-kicker">{settings.heroKicker||'أهلًا بيك في مدينتك'}</span>
           {settings.heroTitle?(
             <h1>{settings.heroTitle}</h1>
           ):(
@@ -126,7 +125,6 @@ export default function CityHub({
             )}
             <button className="secondary" onClick={()=>navigate('home')}><BusFront size={18}/> خطط مشوارك</button>
           </div>
-          <span className="city-signature">{settings.slogan||slogan||'من قلب إسكندرية، لكل أهلها'}</span>
         </div>
         <div className="city-brand-art">
           <img src={heroArt} alt="Eskendrella Alexandria — شعار إسكندريلا"/>
@@ -177,13 +175,9 @@ export default function CityHub({
                     {visibleGroups.map(g => (
                       <button key={g.id} className="city-category" onClick={() => navigate(g.id)}>
                         <span className="city-category-icon" style={{ color: g.color, background: g.color + '15' }}>
-                          <g.icon size={27} />
+                          <g.icon size={38} />
                         </span>
                         <h3>{g.title}</h3>
-                        <p>{g.subtitle}</p>
-                        <span className="city-category-cta">
-                          افتح القسم <ArrowLeft size={17} />
-                        </span>
                       </button>
                     ))}
                   </div>

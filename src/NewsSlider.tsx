@@ -4,11 +4,9 @@ import {
   ChevronLeft, 
   Newspaper, 
   Clock, 
-  MapPin, 
   Pause, 
   Play, 
-  ArrowLeft,
-  Building
+  ArrowLeft
 } from 'lucide-react';
 import { subscribePublic, firebaseReady } from './firebase';
 import { directoryEntries } from './cityDirectory';
@@ -190,52 +188,10 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
         <div className="esk-news-header-titles">
           <span className="esk-news-live-badge">
             <span className="esk-news-pulse-dot" />
-            نبض إسكندرية • أحدث الأخبار
+            نبض إسكندرية
           </span>
           <h2 className="esk-news-title">أخبار إسكندرية</h2>
           <p className="esk-news-subtitle">المستجدات اليومية، مشروعات المدينة، وحكايات عروس البحر الأبيض</p>
-        </div>
-
-        <div className="esk-news-controls">
-          <button 
-            type="button" 
-            className="esk-news-all-btn"
-            onClick={() => navigate('city-news')}
-            title="تصفح جميع أخبار وحكايات إسكندريلا"
-          >
-            المجلة والأخبار <ArrowLeft size={16} />
-          </button>
-
-          <button 
-            type="button" 
-            className="esk-news-btn"
-            onClick={() => setIsPaused(!isPaused)}
-            aria-label={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف التبديل التلقائي مؤقتًا"}
-            title={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف التبديل مؤقتًا"}
-          >
-            {isPaused ? <Play size={15} /> : <Pause size={15} />}
-          </button>
-
-          {/* RTL: Next is left arrow, Previous is right arrow */}
-          <button 
-            type="button" 
-            className="esk-news-btn"
-            onClick={prevSlide}
-            aria-label="الخبر السابق"
-            title="الخبر السابق"
-          >
-            <ChevronRight size={20} />
-          </button>
-
-          <button 
-            type="button" 
-            className="esk-news-btn"
-            onClick={nextSlide}
-            aria-label="الخبر التالي"
-            title="الخبر التالي"
-          >
-            <ChevronLeft size={20} />
-          </button>
         </div>
       </div>
 
@@ -268,7 +224,8 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
             />
             <div className="esk-news-visual-overlay">
               <span className="esk-news-visual-caption">
-                {currentItem.region || 'عروس البحر الأبيض'}
+                <Newspaper size={12} />
+                {currentItem.category || 'أخبار إسكندرية'}
               </span>
             </div>
           </div>
@@ -281,59 +238,84 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
             </div>
 
             <div className="esk-news-badge-row">
-              <span className="esk-news-category-badge">
-                <Newspaper size={13} />
-                {currentItem.category || 'أخبار إسكندرية'}
-              </span>
-
-              {currentItem.region && (
-                <span className="esk-news-region-badge">
-                  <MapPin size={12} />
-                  {currentItem.region}
-                </span>
-              )}
-
               {currentItem.publishedDate && (
                 <span className="esk-news-region-badge">
                   <Clock size={12} />
                   {formatCityDate(currentItem.publishedDate)}
                 </span>
               )}
-            </div>
-
-            <div className="esk-news-slide-footer">
-              <span className="esk-news-source-tag">
-                <Building size={14} />
-                المصدر: {currentItem.sourceName || 'محررو إسكندريلا'}
-              </span>
 
               <span className="esk-news-read-cta">
-                اقرأ الخبر <ArrowLeft size={15} />
+                اقرأ الخبر <ArrowLeft size={14} />
               </span>
             </div>
           </div>
         </div>
 
-        {/* Bottom bar with slide dots and counter */}
+        {/* Bottom bar with slide dots, counter, and controls */}
         <div className="esk-news-bottom-bar">
-          <div className="esk-news-dots">
-            {news.map((item, idx) => (
-              <button
-                key={item.id || idx}
-                type="button"
-                className={`esk-news-dot ${idx === currentIndex ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentIndex(idx);
-                }}
-                aria-label={`انتقل إلى الخبر رقم ${idx + 1}`}
-              />
-            ))}
+          <div className="esk-news-bottom-meta">
+            <div className="esk-news-dots">
+              {news.map((item, idx) => (
+                <button
+                  key={item.id || idx}
+                  type="button"
+                  className={`esk-news-dot ${idx === currentIndex ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentIndex(idx);
+                  }}
+                  aria-label={`انتقل إلى الخبر رقم ${idx + 1}`}
+                />
+              ))}
+            </div>
+
+            <span className="esk-news-counter">
+              {((currentIndex + 1)).toLocaleString('ar-EG')} من {(totalSlides).toLocaleString('ar-EG')}
+            </span>
           </div>
 
-          <span>
-            {((currentIndex + 1)).toLocaleString('ar-EG')} من {(totalSlides).toLocaleString('ar-EG')}
-          </span>
+          <div className="esk-news-controls">
+            <button 
+              type="button" 
+              className="esk-news-all-btn"
+              onClick={() => navigate('city-news')}
+              title="تصفح جميع أخبار وحكايات إسكندريلا"
+            >
+              المجلة والأخبار <ArrowLeft size={16} />
+            </button>
+
+            <button 
+              type="button" 
+              className="esk-news-btn"
+              onClick={() => setIsPaused(!isPaused)}
+              aria-label={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف التبديل التلقائي مؤقتًا"}
+              title={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف التبديل مؤقتًا"}
+            >
+              {isPaused ? <Play size={15} /> : <Pause size={15} />}
+            </button>
+
+            {/* RTL: Next is left arrow, Previous is right arrow */}
+            <button 
+              type="button" 
+              className="esk-news-btn"
+              onClick={prevSlide}
+              aria-label="الخبر السابق"
+              title="الخبر السابق"
+            >
+              <ChevronRight size={20} />
+            </button>
+
+            <button 
+              type="button" 
+              className="esk-news-btn"
+              onClick={nextSlide}
+              aria-label="الخبر التالي"
+              title="الخبر التالي"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          </div>
         </div>
       </div>
 
