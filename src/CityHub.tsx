@@ -22,12 +22,12 @@ export const cityTabs=[
 ];
 
 const groups=[
-  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'فسحة على قد جيبك، ومع اللي تحبهم',icon:BeachUmbrella,color:'#247887'},
-  {id:'map',title:'خريطة المعالم السياحية',subtitle:'استكشف متاحف وقلاع وقصور وشواطئ المدينة',icon:MapPin,color:'#bc8523'},
-  {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك، وأنشطة تلعبها',icon:Trophy,color:'#438d77'},
-  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'حكايات إسكندرية، واللي بيحصل فيها',icon:Newspaper,color:'#d97706'},
-  {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للي تحتاجه حواليك',icon:Store,color:'#79835a'},
-  {id:'home',title:'مواصلات إسكندرية',subtitle:'من أي حتة لأي حتة في إسكندرية',icon:BusFront,color:'#146486'}
+  {id:'city-outings',title:'خروجات إسكندرية',subtitle:'أماكن فسح وترفيه بالمدينة',icon:BeachUmbrella,color:'#247887'},
+  {id:'map',title:'خريطة المعالم',subtitle:'أهم معالم ومتاحف وقصور المدينة',icon:MapPin,color:'#bc8523'},
+  {id:'city-sports',title:'رياضة سكندرية',subtitle:'مواعيد أنديتك وفعالياتها',icon:Trophy,color:'#438d77'},
+  {id:'city-news',title:'الأخبار والفعاليات',subtitle:'أحدث مستجدات وحكايات المدينة',icon:Newspaper,color:'#d97706'},
+  {id:'city-services',title:'الخدمات والمحلات',subtitle:'دليلك للخدمات والمحلات',icon:Store,color:'#79835a'},
+  {id:'home',title:'مواصلات إسكندرية',subtitle:'خطوط ومحطات إسكندرية',icon:BusFront,color:'#146486'}
 ];
 
 const collectionFor:Record<string,string>={

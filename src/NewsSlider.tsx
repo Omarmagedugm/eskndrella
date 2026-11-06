@@ -258,7 +258,22 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
           }}
           aria-label={`اقرأ الخبر: ${currentItem.name}`}
         >
-          {/* Content side */}
+          {/* Visual side on top */}
+          <div className="esk-news-slide-visual">
+            <img 
+              src={coverUrl} 
+              alt={currentItem.name} 
+              className="esk-news-slide-img" 
+              loading="lazy" 
+            />
+            <div className="esk-news-visual-overlay">
+              <span className="esk-news-visual-caption">
+                {currentItem.region || 'عروس البحر الأبيض'}
+              </span>
+            </div>
+          </div>
+
+          {/* Content side below image */}
           <div className="esk-news-slide-content">
             <div>
               <h3 className="esk-news-slide-headline">{currentItem.name}</h3>
@@ -294,21 +309,6 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
 
               <span className="esk-news-read-cta">
                 اقرأ الخبر <ArrowLeft size={15} />
-              </span>
-            </div>
-          </div>
-
-          {/* Visual side */}
-          <div className="esk-news-slide-visual">
-            <img 
-              src={coverUrl} 
-              alt={currentItem.name} 
-              className="esk-news-slide-img" 
-              loading="lazy" 
-            />
-            <div className="esk-news-visual-overlay">
-              <span className="esk-news-visual-caption">
-                {currentItem.region || 'عروس البحر الأبيض'}
               </span>
             </div>
           </div>
