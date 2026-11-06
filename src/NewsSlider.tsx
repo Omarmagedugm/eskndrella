@@ -260,6 +260,11 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
         >
           {/* Content side */}
           <div className="esk-news-slide-content">
+            <div>
+              <h3 className="esk-news-slide-headline">{currentItem.name}</h3>
+              <p className="esk-news-slide-summary">{currentItem.summary}</p>
+            </div>
+
             <div className="esk-news-badge-row">
               <span className="esk-news-category-badge">
                 <Newspaper size={13} />
@@ -281,11 +286,6 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
               )}
             </div>
 
-            <div>
-              <h3 className="esk-news-slide-headline">{currentItem.name}</h3>
-              <p className="esk-news-slide-summary">{currentItem.summary}</p>
-            </div>
-
             <div className="esk-news-slide-footer">
               <span className="esk-news-source-tag">
                 <Building size={14} />
@@ -293,7 +293,7 @@ export default function NewsSlider({ navigate, save }: NewsSliderProps) {
               </span>
 
               <span className="esk-news-read-cta">
-                اقرأ الخبر في صفحة كاملة <ArrowLeft size={15} />
+                اقرأ الخبر <ArrowLeft size={15} />
               </span>
             </div>
           </div>
